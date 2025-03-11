@@ -4,12 +4,10 @@ import { Adapter } from "next-auth/adapters";
 
 import { prisma } from "@/lib/prisma";
 import authConfig from "@/auth.config";
-import { Role } from "@/types/types";
 
 declare module "@auth/core/adapters" {
   interface AdapterUser {
     phoneNumber: string;
-    role: Role;
   }
 }
 
@@ -27,7 +25,6 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       if (user) {
         token.id = user.id;
         token.phoneNumber = user.phoneNumber;
-        token.role = user.role;
       }
       return token;
     },
@@ -36,7 +33,6 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       if (token && session.user) {
         session.user.id = token.id as string;
         session.user.phoneNumber = token.phoneNumber as string;
-        session.user.role = token.role as Role;
       }
       return session;
     },

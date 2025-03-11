@@ -2,7 +2,6 @@ import Credentials from "next-auth/providers/credentials";
 import type { NextAuthConfig } from "next-auth";
 
 import { validateOtpAndLogin } from "@/services/auth/validateOtpAndLogin";
-import { Role } from "@/types/types";
 
 // TODO: Add zod for input validation
 
@@ -39,7 +38,6 @@ export default {
         return {
           id: user.id,
           phoneNumber: user.phoneNumber,
-          role: user.role as Role,
         };
       },
     }),
