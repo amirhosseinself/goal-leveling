@@ -1,0 +1,146 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// مدل کاربر با اطلاعات عمومی و احراز هویت
+model User {
+  id             String          @id @default(auto()) @map("_id") @db.ObjectId
+  // اطلاعات ورود
+  email          String?         @unique
+  password       String?
+  phoneNumber    String?         @unique @db.String
+  otpCodes       Otp[]
+  userName       String?         @unique
+  fullName       String?
+  profilePic     String?
+  bio            String?
+  accounts       Account[]
+  sessions       Session[]
+  
+  // اطلاعات برنامه
+  goals          Goal[]
+  skills         Skill[]
+  goalProgress   GoalProgress[]
+  skillProgress  SkillProgress[]
+  
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+
+// مدل‌های مربوط به حساب‌های خارجی و نشست‌های ورود
+model Account {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String   @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?  @db.String
+  access_token      String?  @db.String
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?  @db.String
+  session_state     String?
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionToken String   @unique
+  userId       String   @db.ObjectId
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model VerificationToken {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  identifier String
+  token      String
+  expires    DateTime
+  
+  @@unique([identifier, token])
+}
+
+model Otp {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId
+  user       User     @relation(fields: [userId], references: [id])
+  code       String   // کد OTP برای ورود
+  sentAt     DateTime // زمان ارسال کد
+  expiresAt  DateTime // زمان انقضای کد
+  isVerified Boolean  @default(false)
+}
+
+// مدل‌های مرتبط با اهداف، مهارت‌ها و پیشرفت‌های ثبت‌شده
+
+model Goal {
+  id          String         @id @default(auto()) @map("_id") @db.ObjectId
+  user        User           @relation(fields: [userId], references: [id])
+  userId      String         @db.ObjectId
+  title       String
+  description String?
+  category    String?        // مثلاً کوتاه‌مدت یا بلندمدت
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  goalSkills  GoalSkill[]
+  progress    GoalProgress[]
+}
+
+model Skill {
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
+  user           User           @relation(fields: [userId], references: [id])
+  userId         String         @db.ObjectId
+  title          String
+  description    String?
+  requiredPoints Int?           // امتیاز لازم جهت کسب مهارت
+  createdAt      DateTime       @default(now())
+  goalSkills     GoalSkill[]
+  progress       SkillProgress[]
+}
+
+model GoalSkill {
+  id      String   @id @default(auto()) @map("_id") @db.ObjectId
+  goal    Goal     @relation(fields: [goalId], references: [id])
+  goalId  String   @db.ObjectId
+  skill   Skill    @relation(fields: [skillId], references: [id])
+  skillId String   @db.ObjectId
+}
+
+model GoalProgress {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @db.ObjectId
+  goal      Goal     @relation(fields: [goalId], references: [id])
+  goalId    String   @db.ObjectId
+  date      DateTime
+  rating    Int      // امتیاز روزانه (مثلاً از ۱ تا ۱۰)
+  note      String?
+  createdAt DateTime @default(now())
+}
+
+model SkillProgress {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @db.ObjectId
+  skill     Skill    @relation(fields: [skillId], references: [id])
+  skillId   String   @db.ObjectId
+  date      DateTime
+  rating    Int      // میزان تلاش یا امتیاز ثبت‌شده برای مهارت
+  note      String?
+  createdAt DateTime @default(now())
+}
