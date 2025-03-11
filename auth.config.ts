@@ -3,8 +3,6 @@ import type { NextAuthConfig } from "next-auth";
 
 import { validateOtpAndLogin } from "@/services/auth/validateOtpAndLogin";
 
-// TODO: Add zod for input validation
-
 export default {
   providers: [
     Credentials({
@@ -23,21 +21,26 @@ export default {
           console.log("[auth.config.ts] Phone number or OTP code is missing.");
           return null;
         }
-        // Validate OTP from the database
-        const result = await validateOtpAndLogin(phoneNumber, otpCode);
 
-        if (!result) {
+        // Validate OTP from the database
+        const user = await validateOtpAndLogin(phoneNumber, otpCode);
+
+        if (!user) {
           console.log("[auth.config.ts] Invalid or expired OTP code.");
           return null;
         }
-        const user = result;
-        if (!user) {
-          console.log("[auth.config.ts] User not found.");
-          return null;
-        }
+
+        // **Ensure returning a full User object**
         return {
           id: user.id,
-          phoneNumber: user.phoneNumber,
+          phoneNumber: user.phoneNumber || "", // Ensure it's always a string
+          email: user.email || null,
+          userName: user.userName || null,
+          fullName: user.fullName || null,
+          profilePic: user.profilePic || null,
+          bio: user.bio || null,
+          createdAt: user.createdAt || new Date().toISOString(),
+          updatedAt: user.updatedAt || new Date().toISOString(),
         };
       },
     }),
