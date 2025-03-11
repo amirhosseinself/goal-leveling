@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "gym app",
+  title: "level up!",
   description: "created with love",
 };
 
