@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { successResponse, errorResponse } from "@/utils";
-import type { Role } from "@/types/types";
 
 export async function PUT(req: NextRequest) {
   try {
@@ -17,7 +16,7 @@ export async function PUT(req: NextRequest) {
 
     // پارس کردن اطلاعات ارسال شده
     const body = await req.json();
-    const { fullName, userName, bio, profilePic, role } = body;
+    const { fullName, userName, bio, profilePic } = body;
 
     // آماده‌سازی داده‌های به‌روزرسانی
     const updateData: Record<string, unknown> = {};
@@ -55,20 +54,6 @@ export async function PUT(req: NextRequest) {
 
     if (profilePic && profilePic.trim() !== "") {
       updateData.profilePic = profilePic;
-    }
-
-    const validRoles: Role[] = ["TRAINEE", "COACH", "ADMIN"];
-    if (role && validRoles.includes(role)) {
-      updateData.role = role;
-    } else if (role) {
-      return NextResponse.json(
-        errorResponse(
-          [{ field: "role", message: "Invalid role value" }],
-          "Validation Error",
-          3
-        ),
-        { status: 400 }
-      );
     }
 
     // بررسی اینکه حداقل یک فیلد برای آپدیت وجود دارد

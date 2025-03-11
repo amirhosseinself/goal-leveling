@@ -25,7 +25,6 @@ export async function GET(_req: NextRequest) {
         fullName: true,
         profilePic: true,
         bio: true,
-        role: true,
         createdAt: true,
         updatedAt: true,
       },
