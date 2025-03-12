@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { ToastContainer } from "react-toastify";
+import { Toaster } from "react-hot-toast";
 
 import "./globals.css";
 
@@ -63,7 +63,16 @@ export default function RootLayout({
         className={`${charismaExtraBold.variable} ${charismaRegular.variable} ${irSansXRegular.variable} ${irSansXMedium.variable} ${irSansXBold.variable} ${montserrat.variable} rtl font-sm`}
       >
         {children}
-        <ToastContainer position="top-center" />
+        <Toaster
+          position="top-center"
+          reverseOrder={false}
+          toastOptions={{
+            style: {
+              fontSize: "14px",
+              direction: "rtl",
+            },
+          }}
+        />
       </body>
     </html>
   );
