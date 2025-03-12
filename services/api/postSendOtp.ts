@@ -1,4 +1,5 @@
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
+import { apiClient } from "./apiClient";
 
 // تایپ داده ورودی و خروجی تابع
 interface PostSendOtpProps {
@@ -7,10 +8,10 @@ interface PostSendOtpProps {
 
 // تابع برای ارسال OTP
 const postSendOtp = async ({ phoneNumber }: PostSendOtpProps) => {
-  const url = "/api/auth/send-otp";
+  const url = "/auth/send-otp";
 
   try {
-    const { data, status } = await axios.post(url, { phoneNumber });
+    const { data, status } = await apiClient.post(url, { phoneNumber });
     console.log("[postSendOtp] Response:", data, status);
 
     if (status === 200) {
