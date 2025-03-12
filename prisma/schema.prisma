@@ -95,6 +95,7 @@ model Goal {
   title       String
   description String?
   category    String?        // مثلاً کوتاه‌مدت یا بلندمدت
+  deadline    DateTime?
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
   goalSkills  GoalSkill[]
