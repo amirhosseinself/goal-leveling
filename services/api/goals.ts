@@ -18,7 +18,7 @@ export const getGoals = async (): Promise<
   SuccessResponse<Goal[]> | ErrorResponse
 > => {
   try {
-    const { data, status } = await apiClient.get("/api/goals");
+    const { data, status } = await apiClient.get("/goals");
     if (status === 200) {
       return {
         status: true,
@@ -59,7 +59,7 @@ export const createGoal = async (
   goalData: CreateGoalProps
 ): Promise<SuccessResponse<Goal> | ErrorResponse> => {
   try {
-    const { data, status } = await apiClient.post("/api/goals", goalData);
+    const { data, status } = await apiClient.post("/goals", goalData);
     if (status === 201) {
       return {
         status: true,
@@ -95,7 +95,7 @@ export const getGoalById = async (
   goalId: string
 ): Promise<SuccessResponse<Goal> | ErrorResponse> => {
   try {
-    const { data, status } = await apiClient.get(`/api/goals/${goalId}`);
+    const { data, status } = await apiClient.get(`/goals/${goalId}`);
     if (status === 200) {
       return {
         status: true,
@@ -140,7 +140,7 @@ export const updateGoal = async ({
   deadline,
 }: UpdateGoalProps): Promise<SuccessResponse<Goal> | ErrorResponse> => {
   try {
-    const { data, status } = await apiClient.put(`/api/goals/${goalId}`, {
+    const { data, status } = await apiClient.put(`/goals/${goalId}`, {
       title,
       description,
       deadline,
@@ -180,7 +180,7 @@ export const deleteGoal = async (
   goalId: string
 ): Promise<SuccessResponse<null> | ErrorResponse> => {
   try {
-    const { data, status } = await apiClient.delete(`/api/goals/${goalId}`);
+    const { data, status } = await apiClient.delete(`/goals/${goalId}`);
     if (status === 200) {
       return {
         status: true,
