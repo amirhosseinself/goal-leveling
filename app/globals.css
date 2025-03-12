@@ -2,9 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  .flex-center {
+    @apply flex items-center justify-center;
+  }
 }
+
+/* استفاده از فونت CharismaTF برای تمامی تگ‌های تیتر (h1 تا h6) */
+h1,
+h2 {
+  font-family: var(--font-charisma-extra-bold);
+  font-weight: 800; /* ExtraBold */
+}
+
+h3 {
+  font-family: var(--font-charisma-regular);
+  font-weight: 400;
+}
+
+/* استفاده از فونت Montserrat برای متون انگلیسی یا بخش‌های مورد نظر */
+.english-text {
+  font-family: var(--font-montserrat);
+}
+
+body {
+  font-family: var(--font-irsansx-regular), sans-serif;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  scroll-behavior: smooth;
+}
+
+/* shad cn */
 
 @layer base {
   :root {
@@ -68,5 +97,97 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* my classes */
+
+.rtl {
+  direction: rtl;
+  text-align: right;
+}
+
+.ltr {
+  direction: ltr;
+  text-align: left;
+}
+
+.container {
+  max-width: 1440px;
+  width: 100%;
+  padding-right: 1rem;
+  padding-left: 1rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media only screen and (min-width: 640px) {
+  .container {
+    max-width: 1440px;
+    width: 100%;
+    padding-right: 1.5rem;
+    padding-left: 1.5rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+@media only screen and (min-width: 768px) {
+  .container {
+    max-width: 1440px;
+    width: 100%;
+    padding-right: 60px;
+    padding-left: 60px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+@media only screen and (min-width: 1024px) {
+  .container {
+    max-width: 1240px;
+    width: 100%;
+    padding-right: 80px;
+    padding-left: 80px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+.container-xl {
+  max-width: 1440px;
+  width: 100%;
+  padding-right: 1rem;
+  padding-left: 1rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media only screen and (min-width: 640px) {
+  .container-xl {
+    max-width: 1440px;
+    width: 100%;
+    padding-right: 1rem;
+    padding-left: 1rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+@media only screen and (min-width: 768px) {
+  .container-xl {
+    max-width: 1440px;
+    width: 100%;
+    padding-right: 40px;
+    padding-left: 40px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+@media only screen and (min-width: 1024px) {
+  .container-xl {
+    max-width: 1440px;
+    width: 100%;
+    padding-right: 72px;
+    padding-left: 72px;
+    margin-left: auto;
+    margin-right: auto;
   }
 }
