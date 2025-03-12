@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Toaster } from "react-hot-toast";
+import { ThemeProvider } from "next-themes";
+import Navbar from "@/components/navbar";
 
 import "./globals.css";
 
@@ -62,17 +64,26 @@ export default function RootLayout({
       <body
         className={`${charismaExtraBold.variable} ${charismaRegular.variable} ${irSansXRegular.variable} ${irSansXMedium.variable} ${irSansXBold.variable} ${montserrat.variable} rtl font-sm`}
       >
-        {children}
-        <Toaster
-          position="top-center"
-          reverseOrder={false}
-          toastOptions={{
-            style: {
-              fontSize: "14px",
-              direction: "rtl",
-            },
-          }}
-        />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          enableColorScheme
+        >
+          <Navbar />
+
+          {children}
+          <Toaster
+            position="top-center"
+            reverseOrder={false}
+            toastOptions={{
+              style: {
+                fontSize: "14px",
+                direction: "rtl",
+              },
+            }}
+          />
+        </ThemeProvider>
       </body>
     </html>
   );
