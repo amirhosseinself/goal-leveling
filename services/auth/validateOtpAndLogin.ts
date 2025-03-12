@@ -1,4 +1,4 @@
-import { findUserByPhoneNumber } from "@/services/findUserByPhoneNumber";
+import { findUserByPhoneNumber } from "@/services/server/findUserByPhoneNumber";
 import { prisma } from "@/lib/prisma";
 
 export async function validateOtpAndLogin(phoneNumber: string, otp: string) {
