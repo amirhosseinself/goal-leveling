@@ -94,7 +94,7 @@ model Goal {
   userId      String         @db.ObjectId
   title       String
   description String?
-  category    String?        // مثلاً کوتاه‌مدت یا بلندمدت
+  category    GoalCategory?        // مثلاً کوتاه‌مدت یا بلندمدت
   deadline    DateTime?
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
@@ -144,4 +144,16 @@ model SkillProgress {
   rating    Int      // میزان تلاش یا امتیاز ثبت‌شده برای مهارت
   note      String?
   createdAt DateTime @default(now())
+}
+
+enum GoalCategory {
+  SHORT_TERM     // اهداف کوتاه‌مدت (مثلاً کمتر از ۶ ماه)
+  LONG_TERM      // اهداف بلندمدت (بیشتر از ۶ ماه)
+  FITNESS        // اهداف مرتبط با ورزش و تناسب اندام
+  EDUCATION      // اهداف تحصیلی و یادگیری
+  CAREER         // اهداف شغلی و حرفه‌ای
+  FINANCIAL      // اهداف مالی و اقتصادی
+  PERSONAL       // اهداف شخصی و توسعه فردی
+  RELATIONSHIP   // اهداف مربوط به روابط اجتماعی و خانوادگی
+  OTHER          // سایر اهداف که در دسته‌بندی‌های بالا نیستند
 }
