@@ -2,11 +2,11 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getGoals, deleteGoal } from "@/services/api/goals";
 import { Goal } from "@/services/api/goals";
-import { useRouter } from "next/navigation";
 
 const GoalsPage: React.FC = () => {
   const [goals, setGoals] = useState<Goal[]>([]);
@@ -35,7 +35,7 @@ const GoalsPage: React.FC = () => {
     <div className="container pt-16">
       <header className="mb-8">
         <h1 className="text-3xl font-bold">مدیریت اهداف</h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-300">
+        <p className="mt-2 mb-4 text-gray-600 dark:text-gray-300">
           در اینجا می‌توانید اهداف خود را مدیریت کنید.
         </p>
         <Button onClick={() => router.push("/dashboard/goals/new")}>
