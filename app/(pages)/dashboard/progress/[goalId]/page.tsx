@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { getGoalById, updateGoal } from "@/services/api/goals";
 import {
@@ -11,8 +13,6 @@ import {
   GoalProgress,
 } from "@/services/api/goalProgress";
 import { Goal } from "@/services/api/goals";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 const GoalDetailsPage: React.FC = () => {
   const { goalId } = useParams();
