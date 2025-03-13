@@ -21,6 +21,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  GoalCategoryTranslations,
+  GoalPriorityTranslations,
+  GoalStatusTranslations,
+} from "@/lib/dictionary";
 
 // تعریف تایپ و اعتبارسنجی با Zod با استفاده از Enums پریسما
 const goalSchema = z.object({
@@ -114,7 +119,7 @@ const NewGoalPage: React.FC = () => {
                 <SelectContent>
                   {Object.values(GoalCategory).map((category) => (
                     <SelectItem key={category} value={category}>
-                      {category}
+                      {GoalCategoryTranslations[category]}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -138,7 +143,7 @@ const NewGoalPage: React.FC = () => {
                 <SelectContent>
                   {Object.values(GoalPriority).map((priority) => (
                     <SelectItem key={priority} value={priority}>
-                      {priority}
+                      {GoalPriorityTranslations[priority]}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -162,7 +167,7 @@ const NewGoalPage: React.FC = () => {
                 <SelectContent>
                   {Object.values(GoalStatus).map((status) => (
                     <SelectItem key={status} value={status}>
-                      {status}
+                      {GoalStatusTranslations[status]}
                     </SelectItem>
                   ))}
                 </SelectContent>
