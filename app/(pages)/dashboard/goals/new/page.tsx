@@ -1,48 +1,68 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { motion } from "framer-motion";
+import { toast } from "react-hot-toast";
+import { GoalCategory, GoalPriority, GoalStatus } from "@prisma/client";
+
+import { createGoal } from "@/services/api/goals";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createGoal } from "@/services/api/goals";
-import toast from "react-hot-toast";
-import { motion } from "framer-motion";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+// تعریف تایپ و اعتبارسنجی با Zod با استفاده از Enums پریسما
+const goalSchema = z.object({
+  title: z.string().min(3, "عنوان باید حداقل ۳ کاراکتر باشد"),
+  description: z.string().optional(),
+  category: z.enum(Object.values(GoalCategory) as [string, ...string[]]),
+  priority: z.enum(Object.values(GoalPriority) as [string, ...string[]]),
+  status: z.enum(Object.values(GoalStatus) as [string, ...string[]]),
+  deadline: z.string().optional(),
+});
+
+type GoalFormData = z.infer<typeof goalSchema>;
 
 const NewGoalPage: React.FC = () => {
   const router = useRouter();
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("");
-  const [deadline, setDeadline] = useState("");
-  const [loading, setLoading] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm<GoalFormData>({
+    resolver: zodResolver(goalSchema),
+  });
 
-  const handleCreateGoal = async () => {
-    if (!title.trim()) {
-      toast.error("عنوان نمی‌تواند خالی باشد.");
-      return;
+  const onSubmit = async (data: GoalFormData) => {
+    try {
+      const goalData = {
+        ...data,
+        deadline: data.deadline ? new Date(data.deadline).toISOString() : null,
+      };
+
+      const response = await createGoal(goalData);
+      if (response.status) {
+        toast.success("هدف با موفقیت ایجاد شد!");
+        router.push(`/dashboard/goals/${response.data.id}`);
+      } else {
+        toast.error("مشکلی پیش آمد. دوباره تلاش کنید.");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("خطایی رخ داد!");
     }
-
-    setLoading(true);
-
-    const goalData = {
-      title,
-      description,
-      category: category.trim() ? category : null,
-      deadline: deadline ? new Date(deadline).toISOString() : null,
-    };
-
-    const response = await createGoal(goalData);
-
-    if (response.status) {
-      toast.success("هدف با موفقیت ایجاد شد!");
-      router.push(`/dashboard/goals/${response.data.id}`);
-    } else {
-      toast.error("مشکلی پیش آمد. دوباره تلاش کنید.");
-    }
-
-    setLoading(false);
   };
 
   return (
@@ -58,57 +78,111 @@ const NewGoalPage: React.FC = () => {
         transition={{ duration: 0.5 }}
       >
         <Card className="p-6">
-          {/* فیلد عنوان */}
-          <div className="mb-4">
-            <Label htmlFor="title">عنوان</Label>
-            <Input
-              id="title"
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="عنوان هدف را وارد کنید"
-            />
-          </div>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {/* عنوان */}
+            <div>
+              <Label htmlFor="title">عنوان</Label>
+              <Input
+                id="title"
+                {...register("title")}
+                placeholder="عنوان هدف را وارد کنید"
+              />
+              {errors.title && (
+                <p className="text-red-500 text-sm">{errors.title.message}</p>
+              )}
+            </div>
 
-          {/* فیلد توضیحات */}
-          <div className="mb-4">
-            <Label htmlFor="description">توضیحات (اختیاری)</Label>
-            <Input
-              id="description"
-              type="text"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="توضیحات هدف را بنویسید"
-            />
-          </div>
+            {/* توضیحات */}
+            <div>
+              <Label htmlFor="description">توضیحات (اختیاری)</Label>
+              <Input
+                id="description"
+                {...register("description")}
+                placeholder="توضیحات هدف را بنویسید"
+              />
+            </div>
 
-          {/* فیلد دسته‌بندی */}
-          <div className="mb-4">
-            <Label htmlFor="category">دسته‌بندی (مثلاً کوتاه‌مدت/بلندمدت)</Label>
-            <Input
-              id="category"
-              type="text"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              placeholder="دسته‌بندی هدف را وارد کنید"
-            />
-          </div>
+            {/* دسته‌بندی */}
+            <div>
+              <Label>دسته‌بندی</Label>
+              <Select
+                onValueChange={(val: GoalCategory) => setValue("category", val)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="انتخاب کنید" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.values(GoalCategory).map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.category && (
+                <p className="text-red-500 text-sm">
+                  {errors.category.message}
+                </p>
+              )}
+            </div>
 
-          {/* فیلد ددلاین */}
-          <div className="mb-4">
-            <Label htmlFor="deadline">ددلاین (تاریخ پایان هدف)</Label>
-            <Input
-              id="deadline"
-              type="date"
-              value={deadline}
-              onChange={(e) => setDeadline(e.target.value)}
-            />
-          </div>
+            {/* اولویت */}
+            <div>
+              <Label>اولویت</Label>
+              <Select
+                onValueChange={(val: GoalPriority) => setValue("priority", val)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="انتخاب کنید" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.values(GoalPriority).map((priority) => (
+                    <SelectItem key={priority} value={priority}>
+                      {priority}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.priority && (
+                <p className="text-red-500 text-sm">
+                  {errors.priority.message}
+                </p>
+              )}
+            </div>
 
-          {/* دکمه ثبت */}
-          <Button onClick={handleCreateGoal} disabled={loading}>
-            {loading ? "در حال ثبت..." : "ایجاد هدف"}
-          </Button>
+            {/* وضعیت */}
+            <div>
+              <Label>وضعیت</Label>
+              <Select
+                onValueChange={(val: GoalStatus) => setValue("status", val)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="انتخاب کنید" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.values(GoalStatus).map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.status && (
+                <p className="text-red-500 text-sm">{errors.status.message}</p>
+              )}
+            </div>
+
+            {/* ددلاین */}
+            <div>
+              <Label htmlFor="deadline">ددلاین (تاریخ پایان هدف)</Label>
+              <Input id="deadline" type="date" {...register("deadline")} />
+            </div>
+
+            {/* دکمه ثبت */}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "در حال ثبت..." : "ایجاد هدف"}
+            </Button>
+          </form>
         </Card>
       </motion.div>
     </div>
