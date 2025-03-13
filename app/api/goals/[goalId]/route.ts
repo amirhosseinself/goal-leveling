@@ -3,7 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { successResponse, errorResponse } from "@/utils";
 
-// دریافت جزئیات یک هدف خاص
+/**
+ * دریافت جزئیات یک هدف خاص (GET)
+ */
 export async function GET(
   req: NextRequest,
   { params }: { params: { goalId: string } }
@@ -21,13 +23,12 @@ export async function GET(
       where: { id: goalId },
     });
 
-    if (!goal) {
+    if (!goal || !goal.isActive) {
       return NextResponse.json(errorResponse([], "Goal not found", 3), {
         status: 404,
       });
     }
 
-    // اطمینان از اینکه هدف متعلق به کاربر جاری است
     if (goal.userId !== session.user.id) {
       return NextResponse.json(errorResponse([], "Forbidden", 4), {
         status: 403,
@@ -46,7 +47,9 @@ export async function GET(
   }
 }
 
-// به‌روزرسانی یک هدف خاص
+/**
+ * به‌روزرسانی یک هدف خاص (PUT)
+ */
 export async function PUT(
   req: NextRequest,
   { params }: { params: { goalId: string } }
@@ -61,7 +64,16 @@ export async function PUT(
 
     const { goalId } = params;
     const body = await req.json();
-    const { title, description, deadline } = body;
+    const {
+      title,
+      description,
+      deadline,
+      category,
+      priority,
+      status,
+      targetValue,
+      currentValue,
+    } = body;
 
     if (!title || title.trim() === "") {
       return NextResponse.json(
@@ -74,12 +86,9 @@ export async function PUT(
       );
     }
 
-    // دریافت هدف جهت اطمینان از مالکیت و وجود
-    const goal = await prisma.goal.findUnique({
-      where: { id: goalId },
-    });
+    const goal = await prisma.goal.findUnique({ where: { id: goalId } });
 
-    if (!goal) {
+    if (!goal || !goal.isActive) {
       return NextResponse.json(errorResponse([], "Goal not found", 3), {
         status: 404,
       });
@@ -97,6 +106,11 @@ export async function PUT(
         title,
         description: description?.trim() || null,
         deadline: deadline ? new Date(deadline) : null,
+        category: category || null,
+        priority: priority || null,
+        status: status || null,
+        targetValue: targetValue ?? null,
+        currentValue: currentValue ?? null,
       },
     });
 
@@ -112,7 +126,9 @@ export async function PUT(
   }
 }
 
-// حذف یک هدف خاص
+/**
+ * حذف یک هدف خاص (DELETE)
+ */
 export async function DELETE(
   req: NextRequest,
   { params }: { params: { goalId: string } }
@@ -126,11 +142,9 @@ export async function DELETE(
     }
 
     const { goalId } = params;
-    const goal = await prisma.goal.findUnique({
-      where: { id: goalId },
-    });
+    const goal = await prisma.goal.findUnique({ where: { id: goalId } });
 
-    if (!goal) {
+    if (!goal || !goal.isActive) {
       return NextResponse.json(errorResponse([], "Goal not found", 3), {
         status: 404,
       });
@@ -142,12 +156,14 @@ export async function DELETE(
       });
     }
 
-    await prisma.goal.delete({
+    // به جای حذف کامل، می‌توانیم از soft delete استفاده کنیم:
+    const deletedGoal = await prisma.goal.update({
       where: { id: goalId },
+      data: { isActive: false },
     });
 
     return NextResponse.json(
-      successResponse(null, "Goal deleted successfully"),
+      successResponse(deletedGoal, "Goal deleted successfully"),
       { status: 200 }
     );
   } catch (error) {

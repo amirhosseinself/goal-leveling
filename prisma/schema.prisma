@@ -7,10 +7,49 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// مدل کاربر با اطلاعات عمومی و احراز هویت
+// ================= Enums =================
+
+enum GoalCategory {
+  SHORT_TERM     // اهداف کوتاه‌مدت (مثلاً کمتر از ۶ ماه)
+  LONG_TERM      // اهداف بلندمدت (بیشتر از ۶ ماه)
+  FITNESS        // اهداف مرتبط با ورزش و تناسب اندام
+  EDUCATION      // اهداف تحصیلی و یادگیری
+  CAREER         // اهداف شغلی و حرفه‌ای
+  FINANCIAL      // اهداف مالی و اقتصادی
+  PERSONAL       // اهداف شخصی و توسعه فردی
+  RELATIONSHIP   // اهداف مربوط به روابط اجتماعی و خانوادگی
+  OTHER          // سایر اهداف
+}
+
+enum GoalPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum GoalStatus {
+  IN_PROGRESS
+  COMPLETED
+  SUSPENDED
+  CANCELLED
+}
+
+enum SkillLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum SkillLearningStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  MASTERED
+}
+
+//  Models
+
 model User {
   id             String          @id @default(auto()) @map("_id") @db.ObjectId
-  // اطلاعات ورود
   email          String?         @unique
   password       String?
   phoneNumber    String?         @unique @db.String
@@ -33,7 +72,6 @@ model User {
 }
 
 
-// مدل‌های مربوط به حساب‌های خارجی و نشست‌های ورود
 model Account {
   id                String   @id @default(auto()) @map("_id") @db.ObjectId
   userId            String   @db.ObjectId
@@ -47,7 +85,7 @@ model Account {
   scope             String?
   id_token          String?  @db.String
   session_state     String?
-  
+  ipAddress         String?  
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
   
@@ -62,6 +100,11 @@ model Session {
   userId       String   @db.ObjectId
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastActivity DateTime?  // آخرین فعالیت کاربر
+  ipAddress    String?    // آدرس IP
+  deviceInfo   String?    // اطلاعات دستگاه
+  location     String?    // موقعیت جغرافیایی
+  browserInfo  String?    // اطلاعات مرورگر
   
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -80,26 +123,34 @@ model Otp {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
   userId     String   @db.ObjectId
   user       User     @relation(fields: [userId], references: [id])
-  code       String   // کد OTP برای ورود
-  sentAt     DateTime // زمان ارسال کد
-  expiresAt  DateTime // زمان انقضای کد
+  code       String
+  sentAt     DateTime
+  expiresAt  DateTime
   isVerified Boolean  @default(false)
 }
 
-// مدل‌های مرتبط با اهداف، مهارت‌ها و پیشرفت‌های ثبت‌شده
-
+// مدل Goal با فیلدهای اضافی برای بهبود قابلیت‌ها
 model Goal {
-  id          String         @id @default(auto()) @map("_id") @db.ObjectId
-  user        User           @relation(fields: [userId], references: [id])
-  userId      String         @db.ObjectId
-  title       String
-  description String?
-  category    GoalCategory?        // مثلاً کوتاه‌مدت یا بلندمدت
-  deadline    DateTime?
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  goalSkills  GoalSkill[]
-  progress    GoalProgress[]
+  id           String         @id @default(auto()) @map("_id") @db.ObjectId
+  user         User           @relation(fields: [userId], references: [id])
+  userId       String         @db.ObjectId
+  title        String
+  description  String?
+  category     GoalCategory?
+  deadline     DateTime?
+  priority     GoalPriority?      // تعیین اولویت هدف
+  status       GoalStatus?        // وضعیت هدف (در حال انجام، تکمیل شده، معلق، لغو شده)
+  targetValue  Float?             // مقدار هدف (برای اهداف قابل اندازه‌گیری)
+  currentValue Float?             // مقدار فعلی یا پیشرفت فعلی
+  createdBy    String?            // کاربری که هدف را ایجاد کرده
+  updatedBy    String?            // کاربری که آخرین به‌روزرسانی را انجام داده
+  isActive     Boolean      @default(true) // حذف نرم
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  goalSkills   GoalSkill[]
+  progress     GoalProgress[]
+  
+  @@index([userId])
 }
 
 model Skill {
@@ -108,18 +159,27 @@ model Skill {
   userId         String         @db.ObjectId
   title          String
   description    String?
-  requiredPoints Int?           // امتیاز لازم جهت کسب مهارت
+  requiredPoints Int?
+  level          SkillLevel?        // سطح مهارت (مبتدی، متوسط، حرفه‌ای)
+  isActive       Boolean      @default(true) // حذف نرم
   createdAt      DateTime       @default(now())
   goalSkills     GoalSkill[]
   progress       SkillProgress[]
+  
+  @@index([userId])
 }
 
 model GoalSkill {
-  id      String   @id @default(auto()) @map("_id") @db.ObjectId
-  goal    Goal     @relation(fields: [goalId], references: [id])
-  goalId  String   @db.ObjectId
-  skill   Skill    @relation(fields: [skillId], references: [id])
-  skillId String   @db.ObjectId
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  goal           Goal     @relation(fields: [goalId], references: [id])
+  goalId         String   @db.ObjectId
+  skill          Skill    @relation(fields: [skillId], references: [id])
+  skillId        String   @db.ObjectId
+  impact         Float?           // میزان تاثیر مهارت در دستیابی به هدف
+  skillPriority  Int?             // اولویت مهارت برای آن هدف (مثلاً عددی از ۱ تا ۱۰)
+  learningStatus SkillLearningStatus? // وضعیت یادگیری مهارت در چارچوب هدف
+  startDate      DateTime?        // زمان شروع یادگیری مهارت برای این هدف
+  endDate        DateTime?        // زمان پایان یادگیری (در صورت تکمیل)
 }
 
 model GoalProgress {
@@ -132,6 +192,8 @@ model GoalProgress {
   rating    Int      // امتیاز روزانه (مثلاً از ۱ تا ۱۰)
   note      String?
   createdAt DateTime @default(now())
+  
+  @@index([goalId, userId])
 }
 
 model SkillProgress {
@@ -144,16 +206,6 @@ model SkillProgress {
   rating    Int      // میزان تلاش یا امتیاز ثبت‌شده برای مهارت
   note      String?
   createdAt DateTime @default(now())
-}
-
-enum GoalCategory {
-  SHORT_TERM     // اهداف کوتاه‌مدت (مثلاً کمتر از ۶ ماه)
-  LONG_TERM      // اهداف بلندمدت (بیشتر از ۶ ماه)
-  FITNESS        // اهداف مرتبط با ورزش و تناسب اندام
-  EDUCATION      // اهداف تحصیلی و یادگیری
-  CAREER         // اهداف شغلی و حرفه‌ای
-  FINANCIAL      // اهداف مالی و اقتصادی
-  PERSONAL       // اهداف شخصی و توسعه فردی
-  RELATIONSHIP   // اهداف مربوط به روابط اجتماعی و خانوادگی
-  OTHER          // سایر اهداف که در دسته‌بندی‌های بالا نیستند
+  
+  @@index([skillId, userId])
 }

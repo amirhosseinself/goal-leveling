@@ -1,19 +1,21 @@
 import { AxiosError } from "axios";
 import { apiClient } from "./apiClient";
 import type { SuccessResponse, ErrorResponse } from "@/types/api";
+// ایمپورت مدل Goal از Prisma Client (بعد از اجرای npx prisma generate)
+import { Goal } from "@prisma/client";
 
-// تعریف تایپ هدف (Goal) مطابق ساختار داده‌ی برگردانده شده از سرور
-export interface Goal {
-  id: string;
-  userId: string;
+// ایجاد یک تایپ برای ورودی ایجاد هدف جدید
+interface CreateGoalProps {
   title: string;
-  description: string | null;
-  deadline: string | null;
-  createdAt: string;
-  updatedAt: string;
+  description?: string;
+  deadline?: string | null;
+  category?: string | null;
+  priority?: string | null;
+  status?: string | null;
+  targetValue?: number | null;
+  currentValue?: number | null;
 }
 
-// دریافت لیست اهداف
 export const getGoals = async (): Promise<
   SuccessResponse<Goal[]> | ErrorResponse
 > => {
@@ -23,7 +25,7 @@ export const getGoals = async (): Promise<
       return {
         status: true,
         errorCode: null,
-        data: data.data, // فرض می‌شود که ساختار پاسخ { status, errorCode, message, data } است.
+        data: data.data, // انتظار ساختار { status, errorCode, message, data }
         message: data.message,
       } as SuccessResponse<Goal[]>;
     } else {
@@ -49,12 +51,6 @@ export const getGoals = async (): Promise<
   }
 };
 
-// ایجاد یک هدف جدید
-interface CreateGoalProps {
-  title: string;
-  description?: string;
-  deadline?: string; // تاریخ به صورت رشته ISO یا فرمت دلخواه
-}
 export const createGoal = async (
   goalData: CreateGoalProps
 ): Promise<SuccessResponse<Goal> | ErrorResponse> => {
@@ -90,7 +86,6 @@ export const createGoal = async (
   }
 };
 
-// دریافت جزئیات یک هدف خاص
 export const getGoalById = async (
   goalId: string
 ): Promise<SuccessResponse<Goal> | ErrorResponse> => {
@@ -126,26 +121,44 @@ export const getGoalById = async (
   }
 };
 
-// به‌روزرسانی یک هدف خاص
 interface UpdateGoalProps {
   goalId: string;
   title: string;
   description?: string;
-  deadline?: string;
+  deadline?: string | null;
+  category?: string | null;
+  priority?: string | null;
+  status?: string | null;
+  targetValue?: number | null;
+  currentValue?: number | null;
 }
+
 export const updateGoal = async ({
   goalId,
   title,
   description,
   deadline,
+  category,
+  priority,
+  status,
+  targetValue,
+  currentValue,
 }: UpdateGoalProps): Promise<SuccessResponse<Goal> | ErrorResponse> => {
   try {
-    const { data, status } = await apiClient.put(`/goals/${goalId}`, {
-      title,
-      description,
-      deadline,
-    });
-    if (status === 200) {
+    const { data, status: resStatus } = await apiClient.put(
+      `/goals/${goalId}`,
+      {
+        title,
+        description,
+        deadline,
+        category,
+        priority,
+        status,
+        targetValue,
+        currentValue,
+      }
+    );
+    if (resStatus === 200) {
       return {
         status: true,
         errorCode: null,
@@ -175,13 +188,14 @@ export const updateGoal = async ({
   }
 };
 
-// حذف یک هدف
 export const deleteGoal = async (
   goalId: string
 ): Promise<SuccessResponse<null> | ErrorResponse> => {
   try {
-    const { data, status } = await apiClient.delete(`/goals/${goalId}`);
-    if (status === 200) {
+    const { data, status: resStatus } = await apiClient.delete(
+      `/goals/${goalId}`
+    );
+    if (resStatus === 200) {
       return {
         status: true,
         errorCode: null,

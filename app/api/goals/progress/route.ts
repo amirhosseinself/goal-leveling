@@ -8,7 +8,6 @@ import { successResponse, errorResponse } from "@/utils";
  */
 export async function POST(req: NextRequest) {
   try {
-    // دریافت سشن کاربر
     const session = await auth();
     if (!session || !session.user) {
       return NextResponse.json(errorResponse([], "Unauthorized", 1), {
@@ -16,10 +15,8 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // دریافت داده‌های ورودی
     const { goalId, rating, note } = await req.json();
 
-    // بررسی اعتبار ورودی‌ها
     if (!goalId || typeof rating !== "number" || rating < 1 || rating > 10) {
       return NextResponse.json(
         errorResponse(
@@ -31,7 +28,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ثبت پیشرفت جدید
     const newProgress = await prisma.goalProgress.create({
       data: {
         userId: session.user.id,
@@ -73,7 +69,6 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // دریافت سشن کاربر
     const session = await auth();
     if (!session || !session.user) {
       return NextResponse.json(errorResponse([], "Unauthorized", 1), {
@@ -81,10 +76,9 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // دریافت لیست پیشرفت‌های هدف
     const progressList = await prisma.goalProgress.findMany({
       where: { goalId, userId: session.user.id },
-      orderBy: { date: "desc" }, // مرتب‌سازی بر اساس جدیدترین ثبت‌ها
+      orderBy: { date: "desc" },
     });
 
     return NextResponse.json(
@@ -104,7 +98,6 @@ export async function GET(req: NextRequest) {
  */
 export async function DELETE(req: NextRequest) {
   try {
-    // دریافت سشن کاربر
     const session = await auth();
     if (!session || !session.user) {
       return NextResponse.json(errorResponse([], "Unauthorized", 1), {
@@ -125,7 +118,6 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    // بررسی مالکیت رکورد قبل از حذف
     const progress = await prisma.goalProgress.findUnique({
       where: { id: progressId },
     });
@@ -139,7 +131,7 @@ export async function DELETE(req: NextRequest) {
     await prisma.goalProgress.delete({ where: { id: progressId } });
 
     return NextResponse.json(
-      successResponse([], "Progress deleted successfully"),
+      successResponse(null, "Progress deleted successfully"),
       { status: 200 }
     );
   } catch (error) {

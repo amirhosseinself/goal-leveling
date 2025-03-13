@@ -8,7 +8,6 @@ import { successResponse, errorResponse } from "@/utils";
  */
 export async function GET() {
   try {
-    // دریافت سشن کاربر
     const session = await auth();
     if (!session || !session.user) {
       return NextResponse.json(errorResponse([], "Unauthorized", 1), {
@@ -16,17 +15,14 @@ export async function GET() {
       });
     }
 
-    // دریافت لیست اهداف از دیتابیس
     const goals = await prisma.goal.findMany({
-      where: { userId: session.user.id },
+      where: { userId: session.user.id, isActive: true },
       orderBy: { createdAt: "desc" },
     });
 
     return NextResponse.json(
       successResponse(goals, "Goals retrieved successfully"),
-      {
-        status: 200,
-      }
+      { status: 200 }
     );
   } catch (error) {
     console.error("Error fetching goals:", error);
@@ -41,7 +37,6 @@ export async function GET() {
  */
 export async function POST(req: NextRequest) {
   try {
-    // دریافت سشن کاربر
     const session = await auth();
     if (!session || !session.user) {
       return NextResponse.json(errorResponse([], "Unauthorized", 1), {
@@ -49,9 +44,18 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // دریافت داده‌های ورودی
     const body = await req.json();
-    const { title, description, deadline } = body;
+    // خواندن فیلدهای اضافی
+    const {
+      title,
+      description,
+      deadline,
+      category,
+      priority,
+      status,
+      targetValue,
+      currentValue,
+    } = body;
 
     if (!title || title.trim() === "") {
       return NextResponse.json(
@@ -64,21 +68,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ایجاد هدف جدید
     const newGoal = await prisma.goal.create({
       data: {
         title,
         description: description?.trim() || null,
         deadline: deadline ? new Date(deadline) : null,
+        category: category || null,
+        priority: priority || null, // از enum GoalPriority (مثلاً "LOW", "MEDIUM", "HIGH")
+        status: status || null, // از enum GoalStatus (مثلاً "IN_PROGRESS", "COMPLETED", ...)
+        targetValue: targetValue ?? null,
+        currentValue: currentValue ?? null,
         userId: session.user.id,
       },
     });
 
     return NextResponse.json(
       successResponse(newGoal, "Goal created successfully"),
-      {
-        status: 201,
-      }
+      { status: 201 }
     );
   } catch (error) {
     console.error("Error creating goal:", error);
