@@ -2,17 +2,18 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { Goal } from "@prisma/client";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { getGoalById, updateGoal } from "@/services/api/goals";
+import { getGoalById } from "@/services/api/goals";
 import {
   getGoalProgress,
   createGoalProgress,
   GoalProgress,
 } from "@/services/api/goalProgress";
-import { Goal } from "@/services/api/goals";
+import toast from "react-hot-toast";
 
 const GoalDetailsPage: React.FC = () => {
   const { goalId } = useParams();
@@ -21,51 +22,66 @@ const GoalDetailsPage: React.FC = () => {
   const [goal, setGoal] = useState<Goal | null>(null);
   const [progressList, setProgressList] = useState<GoalProgress[]>([]);
   const [progress, setProgress] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [note, setNote] = useState(""); // state جدید برای توضیحات
+  const [loading, setLoading] = useState<boolean>(true);
+  const [addingProgress, setAddingProgress] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchData = async () => {
       if (!goalId) return;
-
       setLoading(true);
-      const goalResponse = await getGoalById(goalId as string);
-      if (goalResponse.status) {
-        setGoal(goalResponse.data);
-      }
 
-      const progressResponse = await getGoalProgress(goalId as string);
-      if (progressResponse.status) {
-        setProgressList(progressResponse.data);
-      }
+      try {
+        const goalResponse = await getGoalById(goalId as string);
+        if (goalResponse.status) {
+          setGoal(goalResponse.data);
+        } else {
+          toast.error("خطا در دریافت اطلاعات هدف");
+        }
 
-      setLoading(false);
+        const progressResponse = await getGoalProgress(goalId as string);
+        if (progressResponse.status) {
+          setProgressList(progressResponse.data);
+        } else {
+          toast.error("خطا در دریافت اطلاعات پیشرفت");
+        }
+      } catch (error) {
+        toast.error("مشکلی در بارگذاری اطلاعات پیش آمد.");
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchData();
   }, [goalId]);
 
-  const handleUpdateGoal = async () => {
-    if (!goal) return;
-
-    const response = await updateGoal({
-      goalId: goal.id,
-      title: goal.title,
-      description: goal.description || "",
-    });
-
-    if (response.status) {
-      alert("هدف با موفقیت به‌روزرسانی شد.");
-    }
-  };
-
   const handleAddProgress = async () => {
-    if (!goal || !progress) return;
+    if (!goal || !progress || isNaN(Number(progress))) {
+      toast.error("لطفاً یک مقدار معتبر وارد کنید.");
+      return;
+    }
 
-    const response = await createGoalProgress(goal.id, parseInt(progress));
-    if (response.status) {
-      alert("پیشرفت با موفقیت ثبت شد.");
-      setProgress("");
-      setProgressList((prev) => [...prev, response.data]);
+    setAddingProgress(true);
+    try {
+      const response = await createGoalProgress(
+        goal.id,
+        parseInt(progress),
+        note.trim()
+      );
+      if (response.status) {
+        toast.success("پیشرفت با موفقیت ثبت شد.");
+        setProgress("");
+        setNote(""); // پاک کردن مقدار note بعد از ثبت موفقیت‌آمیز
+        setProgressList((prev) => [...prev, response.data]);
+      } else {
+        toast.error("خطا در ثبت پیشرفت.");
+      }
+    } catch (error) {
+      toast.error("مشکلی در ثبت پیشرفت پیش آمد.");
+      console.error("Error adding progress:", error);
+    } finally {
+      setAddingProgress(false);
     }
   };
 
@@ -85,40 +101,38 @@ const GoalDetailsPage: React.FC = () => {
             {goal.description || "توضیحاتی وارد نشده است"}
           </p>
 
-          {/* فرم ویرایش هدف */}
-          <div className="mb-4">
-            <Label htmlFor="title">عنوان</Label>
-            <Input
-              id="title"
-              type="text"
-              value={goal.title}
-              onChange={(e) => setGoal({ ...goal, title: e.target.value })}
-            />
-          </div>
-          <div className="mb-4">
-            <Label htmlFor="description">توضیحات</Label>
-            <Input
-              id="description"
-              type="text"
-              value={goal.description || ""}
-              onChange={(e) =>
-                setGoal({ ...goal, description: e.target.value })
-              }
-            />
-          </div>
-          <Button onClick={handleUpdateGoal}>به‌روزرسانی هدف</Button>
-
           {/* فرم ثبت پیشرفت */}
           <div className="mt-6">
-            <Label htmlFor="progress">ثبت پیشرفت</Label>
-            <Input
-              id="progress"
-              type="number"
-              value={progress}
-              onChange={(e) => setProgress(e.target.value)}
-            />
-            <Button className="mt-2" onClick={handleAddProgress}>
-              ثبت پیشرفت
+            <div>
+              <Label htmlFor="progress">ثبت پیشرفت</Label>
+              <Input
+                className="mt-2"
+                id="progress"
+                type="number"
+                placeholder="0 - 10"
+                value={progress}
+                onChange={(e) => setProgress(e.target.value)}
+                min={1}
+              />
+            </div>
+            <div className="mt-4 mb-2">
+              <Label htmlFor="note">توضیحات (اختیاری)</Label>
+              <Input
+                className="mt-2"
+                id="note"
+                type="text"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="توضیحی درباره پیشرفت وارد کنید..."
+              />
+            </div>
+
+            <Button
+              className="mt-2"
+              onClick={handleAddProgress}
+              disabled={addingProgress}
+            >
+              {addingProgress ? "در حال ثبت..." : "ثبت پیشرفت"}
             </Button>
           </div>
 
