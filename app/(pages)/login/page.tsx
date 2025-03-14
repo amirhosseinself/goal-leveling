@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import axios from "axios";
 import postSendOtp from "@/services/api/postSendOtp";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,7 +14,6 @@ import {
   InputOTPSeparator,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
-import axios from "axios";
 
 const Login = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -95,7 +95,7 @@ const Login = () => {
     <div className="flex justify-center items-center h-screen">
       <Card className="w-full max-w-sm p-4">
         <CardHeader>
-          <CardTitle className="text-center">Login</CardTitle>
+          <CardTitle className="text-center text-xl">ورود</CardTitle>
         </CardHeader>
         <CardContent>
           {step === "phone" && (
@@ -103,9 +103,9 @@ const Login = () => {
               <div>
                 <Label
                   htmlFor="phone-number"
-                  className="block text-sm font-medium"
+                  className="block text-sm font-medium mb-2"
                 >
-                  Phone Number
+                  شماره تلفن
                 </Label>
                 <Input
                   id="phone-number"
@@ -113,6 +113,7 @@ const Login = () => {
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   placeholder="09xxxxxxxxx"
+                  className="ltr"
                 />
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
@@ -121,7 +122,7 @@ const Login = () => {
                 disabled={loading}
                 className="w-full"
               >
-                {loading ? "Sending..." : "Send OTP"}
+                {loading ? "درحال ارسال..." : "ارسال OTP"}
               </Button>
             </form>
           )}
@@ -129,30 +130,32 @@ const Login = () => {
           {step === "otp" && (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="otp-code" className="block text-sm font-medium">
-                  OTP Code
-                </Label>
-                <InputOTP
-                  maxLength={6}
-                  className="flex justify-center space-x-2"
-                  onChange={(value) => setOtpCode(value)}
+                <Label
+                  htmlFor="otp-code"
+                  className="block text-sm font-medium mb-2"
                 >
-                  <InputOTPGroup>
-                    <InputOTPSlot index={0} />
-                    <InputOTPSlot index={1} />
-                    <InputOTPSlot index={2} />
-                  </InputOTPGroup>
-                  <InputOTPSeparator />
-                  <InputOTPGroup>
-                    <InputOTPSlot index={3} />
-                    <InputOTPSlot index={4} />
-                    <InputOTPSlot index={5} />
-                  </InputOTPGroup>
-                </InputOTP>
+                  کد ارسال شده
+                </Label>
+                <div className="flex justify-center">
+                  <InputOTP
+                    maxLength={6}
+                    className="flex justify-center space-x-2"
+                    onChange={(value) => setOtpCode(value)}
+                  >
+                    <InputOTPGroup className="ltr">
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
               <Button type="submit" disabled={loading} className="w-full">
-                {loading ? "Logging in..." : "Login"}
+                {loading ? "درحال ورود..." : "ورود"}
               </Button>
             </form>
           )}
