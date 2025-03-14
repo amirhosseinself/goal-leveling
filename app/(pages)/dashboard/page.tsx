@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import toast from "react-hot-toast";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getGoals } from "@/services/api/goals";
@@ -13,6 +14,7 @@ const DashboardPage: React.FC = () => {
   const [skillCount, setSkillCount] = useState<number>(0);
   const [totalScore, setTotalScore] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
+  const [firstLoad, setFirstLoad] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -51,7 +53,12 @@ const DashboardPage: React.FC = () => {
     fetchDashboardData();
   }, []);
 
-  if (loading) return <div>در حال بارگذاری...</div>;
+  useEffect(() => {
+    if (loading && firstLoad) {
+      toast.success("درحال بارگذاری");
+      setFirstLoad(false); // فقط یک بار اجازه نمایش toast را می‌دهد
+    }
+  }, [loading, firstLoad]);
 
   return (
     <div className="container pt-16">
