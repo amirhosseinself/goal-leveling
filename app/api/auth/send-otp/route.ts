@@ -4,19 +4,27 @@ import { successResponse, errorResponse } from "@/utils/apiResponses";
 import { validatePhoneNumber } from "@/utils/phoneValidation";
 import { prisma } from "@/lib/prisma";
 
-// POST request handler
 export const POST = async (req: NextRequest) => {
   try {
-    const { phoneNumber } = await req.json();
+    const body = await req.json();
+    console.log("[api/auth/send-otp] Request Body:", body);
+
+    const { phoneNumber } = body || {};
+    if (!phoneNumber) {
+      return NextResponse.json(
+        errorResponse([], "Phone number is required.", 3),
+        { status: 400 }
+      );
+    }
 
     const result = validatePhoneNumber(phoneNumber);
-
     if (!result.success) {
+      const errors = result.error?.errors || [];
       return NextResponse.json(
         errorResponse(
-          result.error.errors.map((err) => ({
-            field: String(err.path[0]),
-            message: err.message,
+          errors.map((err) => ({
+            field: String(err.path?.[0] || "unknown"),
+            message: err.message || "Invalid input",
           })),
           "Invalid phone number.",
           1
@@ -25,14 +33,12 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
-    // بررسی اینکه آیا کدی در 1 دقیقه گذشته ارسال شده است یا خیر
+    // بررسی OTP در 1 دقیقه گذشته
     const recentOtp = await prisma.otp.findFirst({
       where: {
-        user: {
-          phoneNumber: phoneNumber,
-        },
+        phoneNumber, // ✅ مستقیماً از فیلد جدید استفاده کنید
         sentAt: {
-          gte: new Date(Date.now() - 60 * 1000), // بررسی ۱ دقیقه گذشته
+          gte: new Date(Date.now() - 60 * 1000),
         },
       },
     });
@@ -45,13 +51,21 @@ export const POST = async (req: NextRequest) => {
     }
 
     // تولید و ارسال OTP
-    await generateAndSendOTP(phoneNumber);
+    try {
+      await generateAndSendOTP(phoneNumber);
+    } catch (err) {
+      console.error("[api/auth/send-otp] OTP Generation Error:", err);
+      return NextResponse.json(
+        errorResponse([], "Failed to generate OTP.", 4),
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json(successResponse(null, "OTP sent successfully."), {
       status: 200,
     });
   } catch (error) {
-    console.error("[api/auth/send-otp]", error);
+    console.error("[api/auth/send-otp] Error:", error);
     return NextResponse.json(
       errorResponse(
         [],

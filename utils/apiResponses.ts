@@ -34,7 +34,7 @@ export function errorResponse(
     status: false,
     errorCode,
     message,
-    data: null,
+    data: {},
     errors,
   };
 }

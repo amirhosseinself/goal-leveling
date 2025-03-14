@@ -7,7 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ================= Enums =================
+//  Enums
 
 enum GoalCategory {
   SHORT_TERM     // اهداف کوتاه‌مدت (مثلاً کمتر از ۶ ماه)
@@ -100,11 +100,6 @@ model Session {
   userId       String   @db.ObjectId
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  lastActivity DateTime?  // آخرین فعالیت کاربر
-  ipAddress    String?    // آدرس IP
-  deviceInfo   String?    // اطلاعات دستگاه
-  location     String?    // موقعیت جغرافیایی
-  browserInfo  String?    // اطلاعات مرورگر
   
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -122,11 +117,14 @@ model VerificationToken {
 model Otp {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
   userId     String   @db.ObjectId
+  phoneNumber String  @db.String  // ✅ این فیلد را اضافه کنید
   user       User     @relation(fields: [userId], references: [id])
   code       String
   sentAt     DateTime
   expiresAt  DateTime
   isVerified Boolean  @default(false)
+
+  @@index([phoneNumber]) // برای بهبود سرعت جستجو
 }
 
 // مدل Goal با فیلدهای اضافی برای بهبود قابلیت‌ها

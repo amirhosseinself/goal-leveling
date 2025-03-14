@@ -12,7 +12,7 @@ export interface SuccessResponse<T> extends ApiResponse<T> {
   errorCode: null;
 }
 
-export interface ErrorResponse extends ApiResponse<null> {
+export interface ErrorResponse extends ApiResponse<unknown> {
   status: false;
   errors: Array<{ field?: string; message: string }>;
 }
