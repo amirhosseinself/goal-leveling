@@ -36,7 +36,7 @@ export async function PUT(req: NextRequest) {
     const { id, done, title, targetValue } = await req.json();
     const ms = await prisma.goalMilestone.findUnique({ where: { id }, include: { goal: true } });
     if (!ms || ms.goal.userId !== session.user.id) return NextResponse.json(errorResponse([], "Not found", 3), { status: 404 });
-    const data: any = {};
+    const data: { done?: boolean; title?: string; targetValue?: number | null } = {};
     if (typeof done === "boolean") data.done = done;
     if (typeof title === "string") data.title = title.trim();
     if (targetValue !== undefined) data.targetValue = targetValue;

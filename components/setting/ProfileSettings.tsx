@@ -17,14 +17,14 @@ const ProfileSettings: React.FC = () => {
 
   useEffect(() => {
     if (userQ.data) {
-      const u = userQ.data as any;
+      const u = userQ.data as { userName?: string; fullName?: string; bio?: string };
       setProfile({ username: u.userName || "", fullname: u.fullName || "", bio: u.bio || "" });
     }
   }, [userQ.data]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const response = await update.mutateAsync({ updatingData: { userName: profile.username, fullName: profile.fullname, bio: profile.bio } } as any);
+    const response = await update.mutateAsync({ updatingData: { userName: profile.username, fullName: profile.fullname, bio: profile.bio } } as never);
     if (response.status) toast.success("اطلاعات کاربری با موفقیت به‌روزرسانی شد");
     else toast.error(response.message || "خطا در به‌روزرسانی اطلاعات کاربری");
   };

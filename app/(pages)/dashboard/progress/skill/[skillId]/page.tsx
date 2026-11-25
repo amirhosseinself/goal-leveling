@@ -27,14 +27,14 @@ const SkillProgressPage: React.FC = () => {
   const [rating, setRating] = useState("");
   const [note, setNote] = useState("");
 
-  const skill = skillQ.data as any;
+  const skill = skillQ.data as { id: string; title: string; description?: string | null } | undefined;
   const progressList = ((progressQ.data as SkillProgress[] | undefined) || []);
 
   const handleAdd = async () => {
     if (!skill || !rating) return toast.error("امتیاز را وارد کنید");
     const res = await createProgress.mutateAsync({ skillId: skill.id, rating: Number(rating), note: note.trim() || undefined });
     if (res.status) {
-      const g = (res.data as any).gamification;
+      const g = (res.data as { gamification?: { gained?: number } }).gamification;
       toast.success(g ? `پیشرفت ثبت شد! +${g.gained} XP` : "پیشرفت ثبت شد");
       setRating(""); setNote("");
     } else toast.error(res.message || "خطا در ثبت پیشرفت");

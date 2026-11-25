@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Shield, KeyRound, Info } from "lucide-react";
+import { Shield, Info } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 const SecuritySettings = () => {

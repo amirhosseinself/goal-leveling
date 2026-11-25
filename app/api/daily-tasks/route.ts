@@ -40,12 +40,12 @@ export async function PUT(req: NextRequest) {
     const task = await prisma.dailyTask.findUnique({ where: { id } });
     if (!task || task.userId !== session.user.id) return NextResponse.json(errorResponse([], "Not found", 3), { status: 404 });
 
-    const data: any = {};
+    const data: { title?: string; done?: boolean; completedAt?: Date | null } = {};
     if (typeof title === "string") data.title = title.trim();
     if (typeof done === "boolean") { data.done = done; data.completedAt = done ? new Date() : null; }
     const updated = await prisma.dailyTask.update({ where: { id }, data });
 
-    let gamification: any = null;
+    let gamification: { gained: number } | null = null;
     if (typeof done === "boolean" && done && !task.done) {
       await ensureQuests(session.user.id);
       await updateStreak(session.user.id);

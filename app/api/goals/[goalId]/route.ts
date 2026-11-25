@@ -8,7 +8,7 @@ import { successResponse, errorResponse } from "@/utils";
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { goalId: string } }
+  { params }: { params: Promise<{ goalId: string }> }
 ) {
   try {
     const session = await auth();
@@ -18,7 +18,7 @@ export async function GET(
       });
     }
 
-    const { goalId } = params;
+    const { goalId } = await params;
     const goal = await prisma.goal.findUnique({
       where: { id: goalId },
     });
@@ -52,7 +52,7 @@ export async function GET(
  */
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { goalId: string } }
+  { params }: { params: Promise<{ goalId: string }> }
 ) {
   try {
     const session = await auth();
@@ -62,7 +62,7 @@ export async function PUT(
       });
     }
 
-    const { goalId } = params;
+    const { goalId } = await params;
     const body = await req.json();
     const {
       title,
@@ -131,7 +131,7 @@ export async function PUT(
  */
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { goalId: string } }
+  { params }: { params: Promise<{ goalId: string }> }
 ) {
   try {
     const session = await auth();
@@ -141,7 +141,7 @@ export async function DELETE(
       });
     }
 
-    const { goalId } = params;
+    const { goalId } = await params;
     const goal = await prisma.goal.findUnique({ where: { id: goalId } });
 
     if (!goal || !goal.isActive) {

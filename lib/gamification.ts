@@ -126,7 +126,7 @@ export async function recordProgressEvent(userId: string, opts: { kind: "goal" |
   await ensureQuests(userId);
   const streak = await updateStreak(userId);
   const base = 10 + opts.rating * 2;
-  let gained = base + streak.streakBonus;
+  const gained = base + streak.streakBonus;
   await awardUserXp(userId, gained);
   if (opts.kind === "skill" && opts.skillId) await awardSkillXp(opts.skillId, base);
   if (opts.goalCompleted) await awardUserXp(userId, 100);

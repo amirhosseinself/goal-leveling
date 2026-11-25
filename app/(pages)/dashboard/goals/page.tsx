@@ -25,7 +25,7 @@ const statusTone: Record<string, string> = { IN_PROGRESS: "bg-primary/12 text-pr
 const GoalsPage: React.FC = () => {
   const goalsQ = useGoals();
   const del = useDeleteGoal();
-  const goals = (goalsQ.data as Goal[] | undefined) || [];
+  const goals = useMemo(() => (goalsQ.data as Goal[] | undefined) || [], [goalsQ.data]);
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("ALL");
   const [sort, setSort] = useState("newest");

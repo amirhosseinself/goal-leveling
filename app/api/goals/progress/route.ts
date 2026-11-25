@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { successResponse, errorResponse } from "@/utils";
-import { recordProgressEvent, evaluateBadges } from "@/lib/gamification";
+import { recordProgressEvent } from "@/lib/gamification";
 
 /**
  * ثبت پیشرفت جدید (POST)

@@ -24,14 +24,14 @@ const GoalDetailsPage: React.FC = () => {
   const [progress, setProgress] = useState("");
   const [note, setNote] = useState("");
 
-  const goal = goalQ.data as any;
+  const goal = goalQ.data as { id: string; title: string; description?: string | null } | undefined;
   const progressList = ((progressQ.data as GoalProgress[] | undefined) || []);
 
   const handleAddProgress = async () => {
     if (!goal || !progress || isNaN(Number(progress))) { toast.error("لطفاً یک مقدار معتبر وارد کنید."); return; }
     const res = await createProgress.mutateAsync({ goalId: goal.id, rating: parseInt(progress), note: note.trim() || undefined });
     if (res.status) {
-      const g = (res.data as any).gamification;
+      const g = (res.data as { gamification?: { gained?: number } }).gamification;
       toast.success(g ? `پیشرفت ثبت شد! +${g.gained} XP` : "پیشرفت با موفقیت ثبت شد.");
       setProgress(""); setNote("");
     } else toast.error(res.message || "خطا در ثبت پیشرفت.");

@@ -29,7 +29,7 @@ const SkillPage: React.FC = () => {
 
   const handleSave = async () => {
     if (!skill) return;
-    const res = await updateSkill.mutateAsync({ skillId: skill.id, title: skill.title, description: skill.description || "", requiredPoints: skill.requiredPoints ?? null, level: skill.level ?? null } as any);
+    const res = await updateSkill.mutateAsync({ skillId: skill.id, title: skill.title, description: skill.description || "", requiredPoints: skill.requiredPoints ?? null, level: skill.level ?? null });
     if (res.status) toast.success("مهارت به‌روزرسانی شد");
     else toast.error(res.message || "خطا در به‌روزرسانی");
   };

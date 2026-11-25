@@ -16,7 +16,7 @@ const AccountSettings = () => {
 
   useEffect(() => {
     if (userQ.data) {
-      const u = userQ.data as any;
+      const u = userQ.data as { email?: string; phoneNumber?: string };
       setEmail(u.email || "");
       setPhoneNumber(u.phoneNumber || "");
     }
@@ -24,7 +24,7 @@ const AccountSettings = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await update.mutateAsync({ updatingData: { email } } as any);
+    const res = await update.mutateAsync({ updatingData: { email } } as never);
     if (res.status) toast.success("اطلاعات حساب به‌روزرسانی شد");
     else toast.error(res.message || "خطا در به‌روزرسانی");
   };

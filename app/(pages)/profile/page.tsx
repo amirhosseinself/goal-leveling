@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import Link from "next/link";
 import { Settings, Target, Sparkles, TrendingUp, Activity } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -18,10 +18,10 @@ const ProfilePage: React.FC = () => {
   const skillsQ = useSkills();
   const loading = userQ.isLoading || summaryQ.isLoading || goalsQ.isLoading || skillsQ.isLoading;
   const error = userQ.error || summaryQ.error || goalsQ.error || skillsQ.error;
-  const user = userQ.data as any;
-  const summary = summaryQ.data as any;
-  const goals = (goalsQ.data as any[] | undefined) || [];
-  const skills = (skillsQ.data as any[] | undefined) || [];
+  const user = userQ.data as { fullName?: string | null; userName?: string | null; phoneNumber?: string | null; email?: string | null; bio?: string | null } | undefined;
+  const summary = summaryQ.data as { totalScore?: number; goalProgressCount?: number; skillProgressCount?: number } | undefined;
+  const goals = useMemo(() => (goalsQ.data as { status?: string | null }[] | undefined) || [], [goalsQ.data]);
+  const skills = useMemo(() => (skillsQ.data as unknown[] | undefined) || [], [skillsQ.data]);
 
   if (loading) return <PageSkeleton />;
   if (error) return <div className="page-container"><ErrorState message={(error as Error).message} onRetry={() => { userQ.refetch(); summaryQ.refetch(); goalsQ.refetch(); skillsQ.refetch(); }} /></div>;
@@ -48,7 +48,7 @@ const ProfilePage: React.FC = () => {
             <StatCard label="امتیاز کل" value={summary?.totalScore ?? 0} icon={<TrendingUp className="h-5 w-5" />} tone="primary" />
             <StatCard label="ثبت پیشرفت" value={(summary?.goalProgressCount ?? 0) + (summary?.skillProgressCount ?? 0)} icon={<Activity className="h-5 w-5" />} />
           </section>
-          <Card className="p-6"><h2 className="text-lg font-bold mb-4">خلاصه وضعیت</h2><div className="grid sm:grid-cols-2 gap-3 text-sm"><div className="rounded-xl border border-border/70 bg-background/30 p-4"><div className="text-muted-foreground">اهداف تکمیل‌شده</div><div className="text-xl font-bold mt-1">{goals.filter((g: any) => g.status === "COMPLETED").length}</div></div><div className="rounded-xl border border-border/70 bg-background/30 p-4"><div className="text-muted-foreground">اهداف در حال انجام</div><div className="text-xl font-bold mt-1">{goals.filter((g: any) => g.status === "IN_PROGRESS").length}</div></div></div></Card>
+          <Card className="p-6"><h2 className="text-lg font-bold mb-4">خلاصه وضعیت</h2><div className="grid sm:grid-cols-2 gap-3 text-sm"><div className="rounded-xl border border-border/70 bg-background/30 p-4"><div className="text-muted-foreground">اهداف تکمیل‌شده</div><div className="text-xl font-bold mt-1">{goals.filter((g) => g.status === "COMPLETED").length}</div></div><div className="rounded-xl border border-border/70 bg-background/30 p-4"><div className="text-muted-foreground">اهداف در حال انجام</div><div className="text-xl font-bold mt-1">{goals.filter((g) => g.status === "IN_PROGRESS").length}</div></div></div></Card>
         </div>
       </div>
     </div>

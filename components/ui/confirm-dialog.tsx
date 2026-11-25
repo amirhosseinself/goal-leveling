@@ -15,10 +15,11 @@ export function useConfirm() {
 }
 
 export function ConfirmProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<{ open: boolean; options: ConfirmOptions; resolve?: (v: boolean) => void }>({ open: false, options: {} });
+  const [state, setState] = useState<{ open: boolean; options: ConfirmOptions }>({ open: false, options: {} });
+  const resolveRef = useRef<((v: boolean) => void) | undefined>(undefined);
   const cancelRef = useRef<HTMLButtonElement | null>(null);
-  const confirm = useCallback<ConfirmFn>((options = {}) => new Promise<boolean>((resolve) => setState({ open: true, options, resolve })), []);
-  const close = (v: boolean) => { state.resolve?.(v); setState({ open: false, options: {} }); };
+  const confirm = useCallback<ConfirmFn>((options = {}) => new Promise<boolean>((resolve) => { resolveRef.current = resolve; setState({ open: true, options }); }), []);
+  const close = useCallback((v: boolean) => { resolveRef.current?.(v); resolveRef.current = undefined; setState({ open: false, options: {} }); }, []);
 
   useEffect(() => {
     if (!state.open) return;
@@ -26,7 +27,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") close(false); };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [state.open]);
+  }, [state.open, close]);
 
   return (
     <ConfirmContext.Provider value={confirm}>

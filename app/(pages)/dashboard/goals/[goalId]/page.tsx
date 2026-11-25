@@ -42,7 +42,7 @@ const GoalPage: React.FC = () => {
 
   useEffect(() => { if (goalQ.data) setGoal(goalQ.data as Goal); }, [goalQ.data]);
 
-  const skills = (skillsQ.data as any[] | undefined) || [];
+  const skills = (skillsQ.data as { id: string; title: string }[] | undefined) || [];
   const links = (linksQ.data as GoalSkillLink[] | undefined) || [];
   const milestones = (msQ.data as GoalMilestone[] | undefined) || [];
 
@@ -51,14 +51,14 @@ const GoalPage: React.FC = () => {
     const res = await updateGoal.mutateAsync({
       goalId: goal.id, title: goal.title, description: goal.description || "", category: goal.category, priority: goal.priority, status: goal.status,
       deadline: goal.deadline ? new Date(goal.deadline).toISOString() : null, targetValue: goal.targetValue ?? null, currentValue: goal.currentValue ?? null,
-    } as any);
+    } as never);
     if (res.status) toast.success("هدف با موفقیت به‌روزرسانی شد");
     else toast.error(res.message || "به‌روزرسانی هدف ناموفق بود");
   };
 
   const handleLinkSkill = async () => {
     if (!goal || !selectedSkillId) return;
-    const res = await linkSkill.mutateAsync({ goalId: goal.id, skillId: selectedSkillId, learningStatus: "NOT_STARTED" } as any);
+    const res = await linkSkill.mutateAsync({ goalId: goal.id, skillId: selectedSkillId, learningStatus: "NOT_STARTED" } as never);
     if (res.status) { toast.success("مهارت به هدف متصل شد"); setSelectedSkillId(""); }
     else toast.error(res.message || "خطا در اتصال مهارت");
   };
@@ -73,12 +73,12 @@ const GoalPage: React.FC = () => {
 
   const addMs = async () => {
     if (!goal || !newMilestone.trim()) return;
-    const res = await createMs.mutateAsync({ goalId: goal.id, title: newMilestone.trim(), order: milestones.length } as any);
+    const res = await createMs.mutateAsync({ goalId: goal.id, title: newMilestone.trim(), order: milestones.length } as never);
     if (res.status) setNewMilestone(""); else toast.error(res.message || "خطا");
   };
   const toggleMs = async (ms: GoalMilestone) => {
     if (!goal) return;
-    const res = await updateMs.mutateAsync({ id: ms.id, goalId: goal.id, done: !ms.done } as any);
+    const res = await updateMs.mutateAsync({ id: ms.id, goalId: goal.id, done: !ms.done } as never);
     if (!res.status) toast.error(res.message || "خطا");
   };
   const removeMs = async (id: string) => {

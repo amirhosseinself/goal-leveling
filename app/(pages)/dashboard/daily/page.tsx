@@ -17,7 +17,9 @@ import { useGamification, useDailyTasks, useGoals, useSkills, useCreateDailyTask
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import type { DailyTask } from "@/services/api/dailyTasks";
 
-const QuestCard = ({ title, description, progress, target, xpReward, status }: any) => {
+type Quest = { id: string; title: string; description: string; progress: number; target: number; xpReward: number; status: string };
+type GamificationData = { level: number; xp: number; nextLevelXp: number; levelProgress: number; streakCount: number; longestStreak: number; badges: { id: string; title: string; description: string }[]; dailyQuests: Quest[]; weeklyQuests: Quest[] };
+const QuestCard = ({ title, description, progress, target, xpReward, status }: Omit<Quest, "id">) => {
   const pct = Math.min(100, Math.round((progress / Math.max(target, 1)) * 100));
   const done = status !== "ACTIVE";
   return (
@@ -46,10 +48,10 @@ export default function DailyPage() {
   const [title, setTitle] = useState("");
   const confirm = useConfirm();
 
-  const g = gq.data as any;
-  const tasks = (tq.data as DailyTask[] | undefined) || [];
-  const goals = (goalsQ.data as any[] | undefined) || [];
-  const skills = (skillsQ.data as any[] | undefined) || [];
+  const g = gq.data as GamificationData | undefined;
+  const tasks = useMemo(() => (tq.data as DailyTask[] | undefined) || [], [tq.data]);
+  const goals = useMemo(() => (goalsQ.data as { title: string; status?: string | null }[] | undefined) || [], [goalsQ.data]);
+  const skills = useMemo(() => (skillsQ.data as { title: string }[] | undefined) || [], [skillsQ.data]);
 
   const loading = gq.isLoading || tq.isLoading || goalsQ.isLoading || skillsQ.isLoading;
   const error = gq.error || tq.error || goalsQ.error || skillsQ.error;
@@ -67,7 +69,7 @@ export default function DailyPage() {
   const toggleTask = async (task: DailyTask) => {
     const res = await updateTask.mutateAsync({ id: task.id, done: !task.done });
     if (res.status) {
-      const gained = (res.data as any).gamification?.gained;
+      const gained = (res.data as { gamification?: { gained?: number } }).gamification?.gained;
       if (!task.done) toast.success(gained ? `انجام شد! +${gained} XP` : "انجام شد!");
     } else toast.error(res.message || "خطا");
   };
@@ -161,7 +163,7 @@ export default function DailyPage() {
             <p className="text-sm text-muted-foreground mt-1">ماموریت‌های خودکار برای حفظ ریتم.</p>
           </div>
           <div className="space-y-3">
-            {g?.dailyQuests?.length ? g.dailyQuests.map((q: any) => <QuestCard key={q.id} {...q} />) : <p className="text-sm text-muted-foreground">کوئستی فعال نیست.</p>}
+            {g?.dailyQuests?.length ? g.dailyQuests.map((q) => <QuestCard key={q.id} {...q} />) : <p className="text-sm text-muted-foreground">کوئستی فعال نیست.</p>}
           </div>
         </Card>
       </section>
@@ -170,13 +172,13 @@ export default function DailyPage() {
         <Card className="p-6 space-y-4">
           <h2 className="text-xl font-bold">کوئست‌های هفتگی</h2>
           <div className="space-y-3">
-            {g?.weeklyQuests?.length ? g.weeklyQuests.map((q: any) => <QuestCard key={q.id} {...q} />) : <p className="text-sm text-muted-foreground">کوئست هفتگی فعال نیست.</p>}
+            {g?.weeklyQuests?.length ? g.weeklyQuests.map((q) => <QuestCard key={q.id} {...q} />) : <p className="text-sm text-muted-foreground">کوئست هفتگی فعال نیست.</p>}
           </div>
         </Card>
         <Card className="p-6 space-y-4">
           <h2 className="text-xl font-bold">دستاوردهای اخیر</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {g?.badges?.length ? g.badges.slice(0, 6).map((b: any) => (
+            {g?.badges?.length ? g.badges.slice(0, 6).map((b) => (
               <div key={b.id} className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4">
                 <div className="flex items-center gap-2 mb-1"><Trophy className="h-4 w-4 text-amber-400" /><div className="font-medium text-sm">{b.title}</div></div>
                 <div className="text-xs text-muted-foreground leading-6">{b.description}</div>

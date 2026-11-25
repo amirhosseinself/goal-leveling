@@ -6,7 +6,7 @@ import { successResponse, errorResponse } from "@/utils";
 // دریافت جزئیات یک مهارت خاص
 export async function GET(
   req: NextRequest,
-  { params }: { params: { skillId: string } }
+  { params }: { params: Promise<{ skillId: string }> }
 ) {
   try {
     const session = await auth();
@@ -16,7 +16,7 @@ export async function GET(
       });
     }
 
-    const { skillId } = params;
+    const { skillId } = await params;
     const skill = await prisma.skill.findUnique({
       where: { id: skillId },
     });
@@ -48,7 +48,7 @@ export async function GET(
 // به‌روزرسانی یک مهارت خاص
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { skillId: string } }
+  { params }: { params: Promise<{ skillId: string }> }
 ) {
   try {
     const session = await auth();
@@ -58,7 +58,7 @@ export async function PUT(
       });
     }
 
-    const { skillId } = params;
+    const { skillId } = await params;
     const body = await req.json();
     const { title, description, requiredPoints, level } = body;
 
@@ -114,7 +114,7 @@ export async function PUT(
 // حذف یک مهارت خاص
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { skillId: string } }
+  { params }: { params: Promise<{ skillId: string }> }
 ) {
   try {
     const session = await auth();
@@ -124,7 +124,7 @@ export async function DELETE(
       });
     }
 
-    const { skillId } = params;
+    const { skillId } = await params;
     const skill = await prisma.skill.findUnique({
       where: { id: skillId },
     });

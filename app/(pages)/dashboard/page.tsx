@@ -13,6 +13,10 @@ import { ErrorState } from "@/components/dashboard/error-state";
 import { useGoals, useSkills, useProgressSummary, useGamification } from "@/hooks/queries";
 import type { Goal } from "@prisma/client";
 
+type Quest = { id: string; title: string; progress: number; target: number; xpReward: number; status: string; type: string };
+type Gami = { level: number; xp: number; levelProgress: number; streakCount: number; longestStreak: number; badges: { id: string; title: string; description: string }[]; dailyQuests: Quest[]; weeklyQuests: Quest[] };
+type Summary = { totalScore?: number };
+
 const isOverdue = (g: Goal) => g.deadline && new Date(g.deadline) < new Date() && g.status !== "COMPLETED" && g.status !== "CANCELLED";
 const isDueSoon = (g: Goal) => {
   if (!g.deadline || g.status === "COMPLETED" || g.status === "CANCELLED") return false;
@@ -26,10 +30,10 @@ export default function DashboardPage() {
   const summaryQ = useProgressSummary();
   const gamiQ = useGamification();
 
-  const goals = (goalsQ.data as Goal[] | undefined) || [];
-  const skills = (skillsQ.data as any[] | undefined) || [];
-  const summary = summaryQ.data as any;
-  const gami = gamiQ.data as any;
+  const goals = useMemo(() => (goalsQ.data as Goal[] | undefined) || [], [goalsQ.data]);
+  const skills = useMemo(() => (skillsQ.data as { id: string }[] | undefined) || [], [skillsQ.data]);
+  const summary = summaryQ.data as Summary | undefined;
+  const gami = gamiQ.data as Gami | undefined;
   const loading = goalsQ.isLoading || skillsQ.isLoading || summaryQ.isLoading || gamiQ.isLoading;
   const error = goalsQ.error || skillsQ.error || summaryQ.error || gamiQ.error;
 
@@ -80,7 +84,7 @@ export default function DashboardPage() {
             <Button asChild variant="outline" size="sm"><Link href="/dashboard/daily">همه</Link></Button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {[...(gami?.dailyQuests || []), ...(gami?.weeklyQuests || [])].slice(0, 4).map((q: any) => {
+            {[...(gami?.dailyQuests || []), ...(gami?.weeklyQuests || [])].slice(0, 4).map((q) => {
               const pct = Math.min(100, Math.round((q.progress / Math.max(q.target, 1)) * 100));
               return (
                 <div key={q.id} className="rounded-2xl border border-border/70 bg-background/30 p-4">
@@ -96,7 +100,7 @@ export default function DashboardPage() {
         <Card className="p-6">
           <div className="flex items-center gap-2 mb-5"><Flame className="h-5 w-5 text-amber-400" /><h2 className="text-xl font-bold">دستاوردها</h2></div>
           <div className="space-y-3">
-            {gami?.badges?.slice(0, 6).map((b: any) => (
+            {gami?.badges?.slice(0, 6).map((b) => (
               <div key={b.id} className="rounded-xl border border-border/70 bg-background/30 p-3"><div className="font-medium text-sm">{b.title}</div><div className="text-xs text-muted-foreground mt-1">{b.description}</div></div>
             ))}
             {!gami?.badges?.length && <p className="text-sm text-muted-foreground">هنوز دستاوردی باز نشده.</p>}

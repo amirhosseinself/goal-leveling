@@ -21,7 +21,7 @@ import { SkillLevelTranslations } from "@/lib/dictionary";
 const SkillsPage: React.FC = () => {
   const skillsQ = useSkills();
   const del = useDeleteSkill();
-  const skills = (skillsQ.data as Skill[] | undefined) || [];
+  const skills = useMemo(() => (skillsQ.data as Skill[] | undefined) || [], [skillsQ.data]);
   const [q, setQ] = useState("");
   const [level, setLevel] = useState("ALL");
   const router = useRouter();
