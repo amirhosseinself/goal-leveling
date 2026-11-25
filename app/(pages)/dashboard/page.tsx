@@ -50,6 +50,7 @@ export default function DashboardPage() {
         eyebrow="داشبورد گیمیفای‌شده"
         title={`Level ${gami?.level ?? 1} • ${gami?.xp ?? 0} XP`}
         description={`Streak فعلی: ${gami?.streakCount ?? 0} روز • بهترین رکورد: ${gami?.longestStreak ?? 0} روز`}
+        backgroundImage="/images/goal-peak.jpg"
         actions={<><Button asChild><Link href="/dashboard/daily" className="gap-1.5">ماموریت‌های امروز <ArrowLeft className="h-4 w-4" /></Link></Button><Button asChild variant="outline"><Link href="/dashboard/progress">ثبت پیشرفت</Link></Button></>}
       >
         <div className="space-y-2">

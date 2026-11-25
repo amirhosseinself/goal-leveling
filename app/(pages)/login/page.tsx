@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import axios from "axios";
+import Image from "next/image";
 import postSendOtp from "@/services/api/postSendOtp";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -54,8 +55,11 @@ const Login = () => {
 
   return (
     <div className="page-container min-h-[calc(100vh-4rem)] flex items-center justify-center">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(139,92,246,0.18),transparent_45%)] pointer-events-none" />
-      <Card className="relative w-full max-w-md p-6 sm:p-8 glow-primary bg-card/75">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <Image src="/images/goal-peak.jpg" alt="" fill className="object-cover opacity-20" sizes="100vw" priority />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(139,92,246,0.22),transparent_45%),linear-gradient(to_top,hsl(var(--background)),rgba(0,0,0,0.35),hsl(var(--background)))]" />
+      </div>
+      <Card className="relative w-full max-w-md p-6 sm:p-8 glow-primary bg-card/80 backdrop-blur-md">
         <div className="text-center mb-8 space-y-3">
           <div className="mx-auto h-14 w-14 rounded-2xl bg-primary/15 text-primary flex items-center justify-center">
             {step === "phone" ? <Phone className="h-6 w-6" /> : <ShieldCheck className="h-6 w-6" />}

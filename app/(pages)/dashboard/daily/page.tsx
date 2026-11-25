@@ -95,6 +95,7 @@ export default function DailyPage() {
         eyebrow="مرکز فرمان روزانه"
         title="ماموریت‌های امروز"
         description={today}
+        backgroundImage="/images/anime-night.jpg"
         actions={<>
           <Button asChild variant="outline"><Link href="/dashboard/progress">ثبت پیشرفت</Link></Button>
           <Button asChild><Link href="/dashboard/goals">مدیریت اهداف</Link></Button>
