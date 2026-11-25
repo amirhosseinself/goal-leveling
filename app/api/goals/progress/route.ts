@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { successResponse, errorResponse } from "@/utils";
+import { recordProgressEvent, evaluateBadges } from "@/lib/gamification";
 
 /**
  * ثبت پیشرفت جدید (POST)
@@ -38,8 +39,15 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    const goal = await prisma.goal.findUnique({ where: { id: goalId } });
+    const gamification = await recordProgressEvent(session.user.id, {
+      kind: "goal",
+      rating,
+      goalCompleted: goal?.status === "COMPLETED",
+    });
+
     return NextResponse.json(
-      successResponse(newProgress, "Progress added successfully"),
+      successResponse({ ...newProgress, gamification }, "Progress added successfully"),
       { status: 201 }
     );
   } catch (error) {

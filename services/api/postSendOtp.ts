@@ -1,31 +1,24 @@
 import { AxiosError } from "axios";
 import { apiClient } from "./apiClient";
+import type { ErrorResponse, SuccessResponse } from "@/types/api";
 
-// تایپ داده ورودی و خروجی تابع
 interface PostSendOtpProps {
   phoneNumber: string;
 }
 
-// تابع برای ارسال OTP
-const postSendOtp = async ({ phoneNumber }: PostSendOtpProps) => {
+const postSendOtp = async ({ phoneNumber }: PostSendOtpProps): Promise<SuccessResponse<null> | ErrorResponse> => {
   const url = "/auth/send-otp";
-
   try {
-    const { data, status } = await apiClient.post(url, { phoneNumber });
-    console.log("[postSendOtp] Response:", data, status);
-
-    if (status === 200) {
-      return { status: true, data };
-    } else {
-      console.error("[postSendOtp] Error:", data);
-      return { status: false, data };
-    }
+    const { data } = await apiClient.post(url, { phoneNumber });
+    return { status: true, errorCode: null, data: null, message: data?.message || "OTP sent" };
   } catch (err) {
-    const error = err as AxiosError;
-    console.error("[postSendOtp] Axios error:", error.message);
+    const error = err as AxiosError<{ message?: string; errorCode?: number; errors?: { field?: string; message: string }[] }>;
     return {
       status: false,
-      message: error.message || "An error occurred while sending OTP",
+      errorCode: error.response?.data?.errorCode ?? -1,
+      data: null,
+      message: error.response?.data?.message || error.message || "An error occurred while sending OTP",
+      errors: error.response?.data?.errors || [{ message: error.message || "An error occurred while sending OTP" }],
     };
   }
 };

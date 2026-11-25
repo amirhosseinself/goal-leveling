@@ -3,30 +3,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProfileSettings from "@/components/setting/ProfileSettings";
 import AccountSettings from "@/components/setting/AccountSettings";
 import SecuritySettings from "@/components/setting/SecuritySettings";
+import { PageHeader } from "@/components/dashboard/page-header";
 
-// صفحه اصلی تنظیمات با استفاده از Tabs
 const SettingPage = () => {
   return (
-    <div className="pt-16 container">
-      <h1 className="text-2xl font-bold mb-8">تنظیمات کاربری</h1>
-      <Tabs
-        defaultValue="profile"
-        className="w-full flex flex-col items-center"
-      >
-        <TabsList className="mb-4 rtl">
-          <TabsTrigger value="profile">پروفایل</TabsTrigger>
-          <TabsTrigger value="account">حساب</TabsTrigger>
-          <TabsTrigger value="security">امنیت</TabsTrigger>
+    <div className="page-container space-y-6">
+      <PageHeader eyebrow="تنظیمات" title="تنظیمات کاربری" description="اطلاعات حساب، پروفایل و امنیت خود را مدیریت کن." />
+      <Tabs defaultValue="profile" className="w-full">
+        <TabsList className="mb-6 bg-card/60 border border-border/70 p-1 h-auto rounded-2xl">
+          <TabsTrigger value="profile" className="rounded-xl px-4 py-2">پروفایل</TabsTrigger>
+          <TabsTrigger value="account" className="rounded-xl px-4 py-2">حساب</TabsTrigger>
+          <TabsTrigger value="security" className="rounded-xl px-4 py-2">امنیت</TabsTrigger>
         </TabsList>
-        <TabsContent className="w-full" value="profile">
-          <ProfileSettings />
-        </TabsContent>
-        <TabsContent className="w-full" value="account">
-          <AccountSettings />
-        </TabsContent>
-        <TabsContent className="w-full" value="security">
-          <SecuritySettings />
-        </TabsContent>
+        <TabsContent value="profile"><ProfileSettings /></TabsContent>
+        <TabsContent value="account"><AccountSettings /></TabsContent>
+        <TabsContent value="security"><SecuritySettings /></TabsContent>
       </Tabs>
     </div>
   );

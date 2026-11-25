@@ -2,7 +2,7 @@ import { findUserByPhoneNumber } from "@/services/server/findUserByPhoneNumber";
 import { prisma } from "@/lib/prisma";
 
 export async function generateAndSendOTP(phoneNumber: string) {
-  const code = "151515"; // ثابت برای تست
+  const code = process.env.OTP_DEV_CODE || "151515"; // برای اپ شخصی/توسعه؛ در صورت نیاز قابل جایگزینی با SMS provider
   const sentAt = new Date();
   const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 

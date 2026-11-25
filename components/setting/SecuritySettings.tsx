@@ -1,40 +1,30 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
+import { Shield, KeyRound, Info } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch"; // ایمپورت کامپوننت Switch
-import toast from "react-hot-toast";
 
 const SecuritySettings = () => {
-  const [otpEnabled, setOtpEnabled] = useState<boolean>(false);
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    // در اینجا می‌توان درخواست API برای ذخیره تغییرات ارسال کرد
-    toast.success(
-      otpEnabled
-        ? "احراز هویت دو مرحله‌ای فعال شد"
-        : "احراز هویت دو مرحله‌ای غیرفعال شد"
-    );
-  };
-
   return (
-    <Card className="p-4">
-      <h2 className="text-xl font-semibold mb-4">تنظیمات امنیت</h2>
-      <form onSubmit={handleSubmit} className="space-y-4 rtl">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="otp">فعال‌سازی OTP</Label>
-          <Switch
-            className="ltr"
-            id="otp"
-            checked={otpEnabled}
-            onCheckedChange={setOtpEnabled}
-          />
+    <Card className="p-6 sm:p-8 max-w-2xl space-y-5">
+      <div>
+        <h2 className="text-xl font-bold mb-1">تنظیمات امنیت</h2>
+        <p className="text-sm text-muted-foreground">وضعیت امنیت و روش ورود در این اپ شخصی.</p>
+      </div>
+      <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 flex gap-3">
+        <Shield className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+        <div>
+          <div className="font-medium mb-1">ورود مبتنی بر OTP</div>
+          <p className="text-sm text-muted-foreground leading-7">ورود این اپ به صورت OTP با شماره موبایل انجام می‌شود. برای استفاده شخصی، کد OTP می‌تواند از طریق متغیر محیطی <code className="px-1.5 py-0.5 rounded bg-muted text-foreground">OTP_DEV_CODE</code> تنظیم شود.</p>
         </div>
-        <Button type="submit">به‌روزرسانی</Button>
-      </form>
+      </div>
+      <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4 flex gap-3">
+        <Info className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
+        <div>
+          <div className="font-medium mb-1">قبل از عمومی شدن</div>
+          <p className="text-sm text-muted-foreground leading-7">اگر بعداً اپ عمومی شد، باید ارسال SMS واقعی، محدودسازی تلاش، و مدیریت نشست‌ها اضافه شود.</p>
+        </div>
+      </div>
     </Card>
   );
 };

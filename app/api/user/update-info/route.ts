@@ -16,7 +16,7 @@ export async function PUT(req: NextRequest) {
 
     // پارس کردن اطلاعات ارسال شده
     const body = await req.json();
-    const { fullName, userName, bio, profilePic } = body;
+    const { fullName, userName, bio, profilePic, email } = body;
 
     // آماده‌سازی داده‌های به‌روزرسانی
     const updateData: Record<string, unknown> = {};
@@ -54,6 +54,17 @@ export async function PUT(req: NextRequest) {
 
     if (profilePic && profilePic.trim() !== "") {
       updateData.profilePic = profilePic;
+    }
+
+    if (typeof email === "string" && email.trim() !== "") {
+      const existingEmail = await prisma.user.findUnique({ where: { email: email.trim() } });
+      if (existingEmail && existingEmail.id !== session.user.id) {
+        return NextResponse.json(
+          errorResponse([{ field: "email", message: "Email is already taken" }], "Validation Error", 2),
+          { status: 400 }
+        );
+      }
+      updateData.email = email.trim();
     }
 
     // بررسی اینکه حداقل یک فیلد برای آپدیت وجود دارد

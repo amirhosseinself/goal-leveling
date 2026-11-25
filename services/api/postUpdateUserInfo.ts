@@ -5,6 +5,7 @@ import type { SuccessResponse, ErrorResponse } from "@/types/api";
 // تعریف تایپ اطلاعات کاربر
 export interface UpdatedUser {
   id: string;
+  email?: string | null;
   phoneNumber: string;
   userName: string | null;
   fullName: string | null;
@@ -16,9 +17,11 @@ export interface UpdatedUser {
 
 interface postUpdateUserInfoProps {
   updatingData: {
-    userName: string;
-    fullName: string;
-    bio: string;
+    userName?: string;
+    fullName?: string;
+    bio?: string;
+    email?: string;
+    profilePic?: string;
   };
 }
 
@@ -30,11 +33,7 @@ const postUpdateUserInfo = async ({
   const url = "/user/update-info";
 
   try {
-    const { data, status } = await apiClient.put(url, {
-      fullName: updatingData.fullName,
-      userName: updatingData.userName,
-      bio: updatingData.bio,
-    });
+    const { data, status } = await apiClient.put(url, updatingData);
     console.log("[postUpdateUserInfo] Response:", data, status);
 
     if (status === 200) {

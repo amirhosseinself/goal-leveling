@@ -66,12 +66,9 @@ export const POST = async (req: NextRequest) => {
     });
   } catch (error) {
     console.error("[api/auth/send-otp] Error:", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      errorResponse(
-        [],
-        "Internal server Error. An error occurred while sending OTP.",
-        10
-      ),
+      errorResponse([], `Error sending OTP: ${message}`, 10),
       { status: 500 }
     );
   }

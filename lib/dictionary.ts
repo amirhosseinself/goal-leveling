@@ -1,4 +1,4 @@
-import { GoalCategory, GoalPriority, GoalStatus } from "@prisma/client";
+import { GoalCategory, GoalPriority, GoalStatus, SkillLevel, SkillLearningStatus } from "@prisma/client";
 
 // دیکشنری ترجمه برای GoalCategory
 export const GoalCategoryTranslations: Record<GoalCategory, string> = {
@@ -26,4 +26,16 @@ export const GoalStatusTranslations: Record<GoalStatus, string> = {
   [GoalStatus.COMPLETED]: "تمام شده",
   [GoalStatus.SUSPENDED]: "متوقف شده",
   [GoalStatus.CANCELLED]: "لغو شده",
+};
+
+export const SkillLevelTranslations: Record<SkillLevel, string> = {
+  [SkillLevel.BEGINNER]: "مبتدی",
+  [SkillLevel.INTERMEDIATE]: "متوسط",
+  [SkillLevel.ADVANCED]: "پیشرفته",
+};
+
+export const SkillLearningStatusTranslations: Record<SkillLearningStatus, string> = {
+  [SkillLearningStatus.NOT_STARTED]: "شروع نشده",
+  [SkillLearningStatus.IN_PROGRESS]: "در حال یادگیری",
+  [SkillLearningStatus.MASTERED]: "تسلط یافته",
 };

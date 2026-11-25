@@ -3,13 +3,14 @@
 import * as React from "react";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-
 import { Button } from "@/components/ui/button";
 
 export function ModeToggle() {
   const { theme, setTheme, systemTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
 
-  // تعیین تم فعال (سیستم یا کاربر)
+  React.useEffect(() => setMounted(true), []);
+
   const currentTheme = theme === "system" ? systemTheme : theme;
 
   return (
@@ -17,13 +18,10 @@ export function ModeToggle() {
       variant="outline"
       size="icon"
       onClick={() => setTheme(currentTheme === "dark" ? "light" : "dark")}
-      aria-label="Toggle theme"
+      aria-label="تغییر تم"
+      className="rounded-xl"
     >
-      {currentTheme === "dark" ? (
-        <Sun className="h-[1.2rem] w-[1.2rem]" />
-      ) : (
-        <Moon className="h-[1.2rem] w-[1.2rem]" />
-      )}
+      {mounted && currentTheme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
     </Button>
   );
 }

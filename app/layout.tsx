@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Toaster } from "react-hot-toast";
 import { ThemeProvider } from "next-themes";
+import { SessionProvider } from "next-auth/react";
 import Navbar from "@/components/navbar";
+import { QueryProvider } from "@/components/providers/query-provider";
+import { ConfirmProvider } from "@/components/ui/confirm-dialog";
 
 import "./globals.css";
 
@@ -50,8 +53,8 @@ const montserrat = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "level up!",
-  description: "created with love",
+  title: "Goal Leveling",
+  description: "سیستم شخصی مدیریت هدف، مهارت و پیشرفت با گیمیفیکیشن",
 };
 
 export default function RootLayout({
@@ -60,29 +63,34 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fa" suppressHydrationWarning>
+    <html lang="fa" dir="rtl" suppressHydrationWarning>
       <body
-        className={`${charismaExtraBold.variable} ${charismaRegular.variable} ${irSansXRegular.variable} ${irSansXMedium.variable} ${irSansXBold.variable} ${montserrat.variable} rtl font-sm`}
+        className={`${charismaExtraBold.variable} ${charismaRegular.variable} ${irSansXRegular.variable} ${irSansXMedium.variable} ${irSansXBold.variable} ${montserrat.variable} rtl min-h-screen`}
       >
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="dark"
           enableSystem
           enableColorScheme
         >
-          <Navbar />
-
-          {children}
-          <Toaster
-            position="top-center"
-            reverseOrder={false}
-            toastOptions={{
-              style: {
-                fontSize: "14px",
-                direction: "rtl",
-              },
-            }}
-          />
+          <SessionProvider>
+            <QueryProvider>
+              <ConfirmProvider>
+                <Navbar />
+                {children}
+                <Toaster
+                  position="top-center"
+                  reverseOrder={false}
+                  toastOptions={{
+                    style: {
+                      fontSize: "14px",
+                      direction: "rtl",
+                    },
+                  }}
+                />
+              </ConfirmProvider>
+            </QueryProvider>
+          </SessionProvider>
         </ThemeProvider>
       </body>
     </html>

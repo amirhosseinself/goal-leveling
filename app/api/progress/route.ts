@@ -24,12 +24,19 @@ export async function GET() {
       where: { userId: session.user.id },
     });
 
+    const [goalProgressCount, skillProgressCount, recentGoalProgress, recentSkillProgress] = await Promise.all([
+      prisma.goalProgress.count({ where: { userId: session.user.id } }),
+      prisma.skillProgress.count({ where: { userId: session.user.id } }),
+      prisma.goalProgress.findMany({ where: { userId: session.user.id }, orderBy: { date: "desc" }, take: 5, include: { goal: { select: { title: true } } } }),
+      prisma.skillProgress.findMany({ where: { userId: session.user.id }, orderBy: { date: "desc" }, take: 5, include: { skill: { select: { title: true } } } }),
+    ]);
+
     const totalScore =
       (goalProgressSum._sum.rating || 0) + (skillProgressSum._sum.rating || 0);
 
     return NextResponse.json(
       successResponse(
-        { totalScore },
+        { totalScore, goalProgressCount, skillProgressCount, recentGoalProgress, recentSkillProgress },
         "Progress summary retrieved successfully"
       ),
       { status: 200 }

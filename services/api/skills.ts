@@ -10,8 +10,12 @@ export interface Skill {
   title: string;
   description: string | null;
   requiredPoints: number | null;
+  level?: "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | null;
+  xp?: number;
+  masteryLevel?: number;
+  isActive?: boolean;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
 // دریافت لیست مهارت‌ها
@@ -54,7 +58,8 @@ export const getSkills = async (): Promise<
 interface CreateSkillProps {
   title: string;
   description?: string;
-  requiredPoints?: number;
+  requiredPoints?: number | null;
+  level?: "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | null;
 }
 
 export const createSkill = async (
@@ -133,7 +138,8 @@ interface UpdateSkillProps {
   skillId: string;
   title: string;
   description?: string;
-  requiredPoints?: number;
+  requiredPoints?: number | null;
+  level?: "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | null;
 }
 
 export const updateSkill = async ({
@@ -141,12 +147,14 @@ export const updateSkill = async ({
   title,
   description,
   requiredPoints,
+  level,
 }: UpdateSkillProps): Promise<SuccessResponse<Skill> | ErrorResponse> => {
   try {
     const { data, status } = await apiClient.put(`/skills/${skillId}`, {
       title,
       description,
       requiredPoints,
+      level,
     });
     if (status === 200) {
       return {

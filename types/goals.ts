@@ -1,14 +1,5 @@
-export interface Goal {
-  id: string;
-  title: string;
-  description?: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import type { Goal as PrismaGoal, GoalProgress as PrismaGoalProgress } from "@prisma/client";
 
-export interface GoalProgress {
-  id: string;
-  goalId: string;
-  progress: number;
-  createdAt: string;
-}
+// Re-export Prisma-aligned types for UI/client usage where needed.
+export type Goal = PrismaGoal;
+export type GoalProgress = PrismaGoalProgress;

@@ -14,7 +14,7 @@ export async function GET() {
     }
 
     const skills = await prisma.skill.findMany({
-      where: { userId: session.user.id },
+      where: { userId: session.user.id, isActive: true },
       orderBy: { createdAt: "desc" },
     });
 
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { title, description, requiredPoints } = body;
+    const { title, description, requiredPoints, level } = body;
 
     if (!title || title.trim() === "") {
       return NextResponse.json(
@@ -58,7 +58,8 @@ export async function POST(req: NextRequest) {
       data: {
         title,
         description: description ? description.trim() : null,
-        requiredPoints: requiredPoints || null,
+        requiredPoints: requiredPoints ?? null,
+        level: level || null,
         userId: session.user.id,
       },
     });

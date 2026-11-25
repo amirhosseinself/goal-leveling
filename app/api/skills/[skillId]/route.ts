@@ -21,7 +21,7 @@ export async function GET(
       where: { id: skillId },
     });
 
-    if (!skill) {
+    if (!skill || !skill.isActive) {
       return NextResponse.json(errorResponse([], "Skill not found", 3), {
         status: 404,
       });
@@ -60,7 +60,7 @@ export async function PUT(
 
     const { skillId } = params;
     const body = await req.json();
-    const { title, description, requiredPoints } = body;
+    const { title, description, requiredPoints, level } = body;
 
     if (!title || title.trim() === "") {
       return NextResponse.json(
@@ -77,7 +77,7 @@ export async function PUT(
       where: { id: skillId },
     });
 
-    if (!skill) {
+    if (!skill || !skill.isActive) {
       return NextResponse.json(errorResponse([], "Skill not found", 3), {
         status: 404,
       });
@@ -94,7 +94,8 @@ export async function PUT(
       data: {
         title,
         description: description ? description.trim() : null,
-        requiredPoints: requiredPoints || null,
+        requiredPoints: requiredPoints ?? null,
+        level: level || null,
       },
     });
 
@@ -128,7 +129,7 @@ export async function DELETE(
       where: { id: skillId },
     });
 
-    if (!skill) {
+    if (!skill || !skill.isActive) {
       return NextResponse.json(errorResponse([], "Skill not found", 3), {
         status: 404,
       });
@@ -140,8 +141,9 @@ export async function DELETE(
       });
     }
 
-    await prisma.skill.delete({
+    await prisma.skill.update({
       where: { id: skillId },
+      data: { isActive: false },
     });
 
     return NextResponse.json(

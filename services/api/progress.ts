@@ -5,6 +5,10 @@ import type { SuccessResponse, ErrorResponse } from "@/types/api";
 
 export interface ProgressSummary {
   totalScore: number;
+  goalProgressCount?: number;
+  skillProgressCount?: number;
+  recentGoalProgress?: Array<{ id: string; rating: number; date: string; note?: string | null; goal?: { title: string } }>;
+  recentSkillProgress?: Array<{ id: string; rating: number; date: string; note?: string | null; skill?: { title: string } }>;
 }
 
 export const getProgressSummary = async (): Promise<

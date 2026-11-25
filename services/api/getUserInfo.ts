@@ -5,6 +5,7 @@ import type { SuccessResponse, ErrorResponse } from "@/types/api";
 // تعریف تایپ اطلاعات کاربر
 export interface UserInfo {
   id: string;
+  email?: string | null;
   phoneNumber: string;
   userName: string | null;
   fullName: string | null;
