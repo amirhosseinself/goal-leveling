@@ -10,12 +10,14 @@ import { StatCard } from "@/components/dashboard/stat-card";
 import { ProgressBar } from "@/components/dashboard/progress-bar";
 import { PageSkeleton } from "@/components/dashboard/skeletons";
 import { ErrorState } from "@/components/dashboard/error-state";
+import { GoalStatusDonut } from "@/components/charts/goal-status-donut";
+import { ActivityAreaChart } from "@/components/charts/activity-area-chart";
 import { useGoals, useSkills, useProgressSummary, useGamification } from "@/hooks/queries";
 import type { Goal } from "@prisma/client";
 
 type Quest = { id: string; title: string; progress: number; target: number; xpReward: number; status: string; type: string };
 type Gami = { level: number; xp: number; levelProgress: number; streakCount: number; longestStreak: number; badges: { id: string; title: string; description: string }[]; dailyQuests: Quest[]; weeklyQuests: Quest[] };
-type Summary = { totalScore?: number };
+type Summary = { totalScore?: number; activitySeries?: { date: string; goalScore: number; skillScore: number; goalCount: number; skillCount: number }[] };
 
 const isOverdue = (g: Goal) => g.deadline && new Date(g.deadline) < new Date() && g.status !== "COMPLETED" && g.status !== "CANCELLED";
 const isDueSoon = (g: Goal) => {
@@ -42,8 +44,19 @@ export default function DashboardPage() {
     const inProgress = goals.filter((g) => g.status === "IN_PROGRESS").length;
     const overdue = goals.filter(isOverdue).length;
     const dueSoon = goals.filter(isDueSoon).length;
-    return { completed, inProgress, overdue, dueSoon };
+    const other = Math.max(0, goals.length - completed - inProgress - overdue);
+    return { completed, inProgress, overdue, dueSoon, other };
   }, [goals]);
+
+  const goalDonut = useMemo(() => [
+    { name: "تکمیل‌شده", value: stats.completed, color: "#10b981" },
+    { name: "در حال انجام", value: stats.inProgress, color: "#8b5cf6" },
+    { name: "عقب‌افتاده", value: stats.overdue, color: "#f43f5e" },
+    { name: "سررسید نزدیک", value: stats.dueSoon, color: "#f59e0b" },
+    { name: "سایر", value: stats.other, color: "#64748b" },
+  ].filter((d) => d.value > 0), [stats]);
+
+  const activity14 = useMemo(() => (summary?.activitySeries || []).slice(-14), [summary]);
 
   if (loading) return <PageSkeleton />;
   if (error) return <div className="page-container"><ErrorState message={(error as Error).message} onRetry={() => { goalsQ.refetch(); skillsQ.refetch(); summaryQ.refetch(); gamiQ.refetch(); }} /></div>;
@@ -75,6 +88,33 @@ export default function DashboardPage() {
         <StatCard label="در حال انجام" value={stats.inProgress} tone="primary" />
         <StatCard label="عقب‌افتاده" value={stats.overdue} tone="danger" />
         <StatCard label="سررسید نزدیک" value={stats.dueSoon} tone="warning" />
+      </section>
+
+      <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <Card className="p-6 xl:col-span-2">
+          <div className="flex justify-between items-center mb-5">
+            <div><h2 className="text-xl font-bold">روند پیشرفت ۱۴ روز اخیر</h2><p className="text-sm text-muted-foreground mt-1">مجموع امتیاز ثبت‌شده اهداف و مهارت‌ها در هر روز.</p></div>
+            <Button asChild variant="outline" size="sm"><Link href="/dashboard/progress">جزئیات</Link></Button>
+          </div>
+          <ActivityAreaChart data={activity14} height={260} />
+          <div className="flex flex-wrap gap-4 mt-3 text-xs text-muted-foreground">
+            <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-violet-500" />اهداف</span>
+            <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-cyan-400" />مهارت‌ها</span>
+          </div>
+        </Card>
+        <Card className="p-6">
+          <h2 className="text-xl font-bold mb-1">وضعیت اهداف</h2>
+          <p className="text-sm text-muted-foreground mb-4">نمای کلی وضعیت همه اهداف.</p>
+          <GoalStatusDonut data={goalDonut} height={220} centerValue={goals.length} centerLabel="هدف" />
+          <div className="grid grid-cols-2 gap-2 mt-4 text-xs">
+            {goalDonut.map((d) => (
+              <div key={d.name} className="flex items-center justify-between gap-2 rounded-lg bg-background/30 px-2.5 py-1.5">
+                <span className="flex items-center gap-1.5 text-muted-foreground"><span className="h-2 w-2 rounded-full" style={{ backgroundColor: d.color }} />{d.name}</span>
+                <span className="font-medium">{d.value}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
       </section>
 
       <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">

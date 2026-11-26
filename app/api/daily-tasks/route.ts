@@ -8,9 +8,35 @@ export async function GET(req: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user) return NextResponse.json(errorResponse([], "Unauthorized", 1), { status: 401 });
-    const dateKey = new URL(req.url).searchParams.get("date") || todayKey();
-    const tasks = await prisma.dailyTask.findMany({ where: { userId: session.user.id, dateKey }, orderBy: { createdAt: "asc" } });
-    return NextResponse.json(successResponse(tasks, "Daily tasks"));
+    const url = new URL(req.url);
+    const dateKey = url.searchParams.get("date") || todayKey();
+    const historyDays = Math.min(30, Math.max(1, Number(url.searchParams.get("historyDays") || 7)));
+    const userId = session.user.id;
+
+    const since = new Date();
+    since.setHours(0, 0, 0, 0);
+    since.setDate(since.getDate() - (historyDays - 1));
+    const sinceKey = since.toISOString().slice(0, 10);
+
+    const [tasks, historyRaw] = await Promise.all([
+      prisma.dailyTask.findMany({ where: { userId, dateKey }, orderBy: { createdAt: "asc" } }),
+      prisma.dailyTask.findMany({ where: { userId, dateKey: { gte: sinceKey } }, select: { dateKey: true, done: true } }),
+    ]);
+
+    const byDay = new Map<string, { date: string; done: number; total: number }>();
+    for (let i = 0; i < historyDays; i++) {
+      const d = new Date(since);
+      d.setDate(since.getDate() + i);
+      const k = d.toISOString().slice(0, 10);
+      byDay.set(k, { date: k, done: 0, total: 0 });
+    }
+    for (const t of historyRaw) {
+      const row = byDay.get(t.dateKey);
+      if (row) { row.total += 1; if (t.done) row.done += 1; }
+    }
+    const history = Array.from(byDay.values());
+
+    return NextResponse.json(successResponse({ tasks, history }, "Daily tasks"));
   } catch (e) {
     console.error(e);
     return NextResponse.json(errorResponse([], "Internal Server Error", 10), { status: 500 });

@@ -12,6 +12,7 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { EmptyState } from "@/components/dashboard/empty-state";
 import { PageSkeleton } from "@/components/dashboard/skeletons";
 import { ErrorState } from "@/components/dashboard/error-state";
+import { RatingHistoryChart } from "@/components/charts/rating-history-chart";
 import { useGoal, useGoalProgress, useCreateGoalProgress } from "@/hooks/queries";
 import type { GoalProgress } from "@/services/api/goalProgress";
 
@@ -46,6 +47,14 @@ const GoalDetailsPage: React.FC = () => {
   return (
     <div className="page-container space-y-6">
       <PageHeader eyebrow="ثبت پیشرفت هدف" title={goal.title} description={goal.description || "پیشرفت این هدف را ثبت و تاریخچه را ببین."} actions={<Button variant="ghost" onClick={() => router.back()} className="gap-1.5"><ArrowRight className="h-4 w-4" />بازگشت</Button>} />
+
+      <Card className="p-6">
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <div><h2 className="text-lg font-bold">روند امتیاز این هدف</h2><p className="text-sm text-muted-foreground mt-1">خط نارنجی میانگین امتیاز ثبت‌شده است.</p></div>
+          {progressList.length ? <div className="text-sm text-muted-foreground">میانگین: <span className="font-semibold text-foreground">{(progressList.reduce((s, p) => s + p.rating, 0) / progressList.length).toFixed(1)}</span></div> : null}
+        </div>
+        <RatingHistoryChart items={progressList} height={240} />
+      </Card>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <Card className="p-6 space-y-5">

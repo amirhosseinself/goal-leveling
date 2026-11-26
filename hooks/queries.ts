@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { qk } from "@/lib/query-keys";
 import { getGamification } from "@/services/api/gamification";
-import { getDailyTasks, createDailyTask, updateDailyTask, deleteDailyTask } from "@/services/api/dailyTasks";
+import { getDailyTasks, createDailyTask, updateDailyTask, deleteDailyTask, type DailyTasksResponse } from "@/services/api/dailyTasks";
 import { getGoals, getGoalById, createGoal, updateGoal, deleteGoal } from "@/services/api/goals";
 import { getSkills, getSkillById, createSkill, updateSkill, deleteSkill } from "@/services/api/skills";
 import { getProgressSummary } from "@/services/api/progress";
@@ -26,7 +26,7 @@ export const useGoal = (id: string) => useQuery({ queryKey: qk.goal(id), queryFn
 export const useSkills = () => useQuery({ queryKey: qk.skills, queryFn: () => unwrap(getSkills()) });
 export const useSkill = (id: string) => useQuery({ queryKey: qk.skill(id), queryFn: () => unwrap(getSkillById(id)), enabled: !!id });
 export const useProgressSummary = () => useQuery({ queryKey: qk.progressSummary, queryFn: () => unwrap(getProgressSummary()) });
-export const useDailyTasks = (date?: string) => useQuery({ queryKey: qk.dailyTasks(date), queryFn: () => unwrap(getDailyTasks(date)) });
+export const useDailyTasks = (date?: string) => useQuery({ queryKey: qk.dailyTasks(date), queryFn: () => unwrap<DailyTasksResponse>(getDailyTasks(date, 7)) });
 export const useGoalProgress = (id: string) => useQuery({ queryKey: qk.goalProgress(id), queryFn: () => unwrap(getGoalProgress(id)), enabled: !!id });
 export const useSkillProgress = (id: string) => useQuery({ queryKey: qk.skillProgress(id), queryFn: () => unwrap(getSkillProgress(id)), enabled: !!id });
 export const useGoalSkills = (id: string) => useQuery({ queryKey: qk.goalSkills(id), queryFn: () => unwrap(getGoalSkills(id)), enabled: !!id });
@@ -45,12 +45,17 @@ export const useUpdateDailyTask = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: updateDailyTask,
-    onMutate: async (vars: any) => {
+    onMutate: async (vars: { id: string; done?: boolean; title?: string }) => {
       await qc.cancelQueries({ queryKey: ["daily-tasks"] });
       const prev = qc.getQueriesData({ queryKey: ["daily-tasks"] });
-      qc.setQueriesData({ queryKey: ["daily-tasks"] }, (old: any) =>
-        Array.isArray(old) ? old.map((t) => (t.id === vars.id ? { ...t, ...vars } : t)) : old
-      );
+      qc.setQueriesData({ queryKey: ["daily-tasks"] }, (old: unknown) => {
+        const o = old as DailyTasksResponse | undefined;
+        if (!o?.tasks) return old;
+        const tasks = o.tasks.map((t) => (t.id === vars.id ? { ...t, ...vars } : t));
+        const done = tasks.filter((t) => t.done).length;
+        const history = o.history?.map((h, i, arr) => i === arr.length - 1 ? { ...h, done, total: tasks.length } : h) || o.history;
+        return { ...o, tasks, history };
+      });
       return { prev };
     },
     onError: (_err, _vars, ctx) => {
@@ -73,7 +78,14 @@ export const useDeleteDailyTask = () => {
     onMutate: async (id: string) => {
       await qc.cancelQueries({ queryKey: ["daily-tasks"] });
       const prev = qc.getQueriesData({ queryKey: ["daily-tasks"] });
-      qc.setQueriesData({ queryKey: ["daily-tasks"] }, (old: any) => Array.isArray(old) ? old.filter((t) => t.id !== id) : old);
+      qc.setQueriesData({ queryKey: ["daily-tasks"] }, (old: unknown) => {
+        const o = old as DailyTasksResponse | undefined;
+        if (!o?.tasks) return old;
+        const tasks = o.tasks.filter((t) => t.id !== id);
+        const done = tasks.filter((t) => t.done).length;
+        const history = o.history?.map((h, i, arr) => i === arr.length - 1 ? { ...h, done, total: tasks.length } : h) || o.history;
+        return { ...o, tasks, history };
+      });
       return { prev };
     },
     onError: (_e, _id, ctx) => { ctx?.prev?.forEach(([key, data]) => qc.setQueryData(key, data)); },

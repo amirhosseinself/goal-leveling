@@ -13,9 +13,11 @@ import { ProgressBar } from "@/components/dashboard/progress-bar";
 import { EmptyState } from "@/components/dashboard/empty-state";
 import { PageSkeleton } from "@/components/dashboard/skeletons";
 import { ErrorState } from "@/components/dashboard/error-state";
+import { DailyConsistencyChart } from "@/components/charts/daily-consistency-chart";
+import { GoalStatusDonut } from "@/components/charts/goal-status-donut";
 import { useGamification, useDailyTasks, useGoals, useSkills, useCreateDailyTask, useUpdateDailyTask, useDeleteDailyTask } from "@/hooks/queries";
 import { useConfirm } from "@/components/ui/confirm-dialog";
-import type { DailyTask } from "@/services/api/dailyTasks";
+import type { DailyTask, DailyTasksResponse } from "@/services/api/dailyTasks";
 
 type Quest = { id: string; title: string; description: string; progress: number; target: number; xpReward: number; status: string };
 type GamificationData = { level: number; xp: number; nextLevelXp: number; levelProgress: number; streakCount: number; longestStreak: number; badges: { id: string; title: string; description: string }[]; dailyQuests: Quest[]; weeklyQuests: Quest[] };
@@ -49,7 +51,9 @@ export default function DailyPage() {
   const confirm = useConfirm();
 
   const g = gq.data as GamificationData | undefined;
-  const tasks = useMemo(() => (tq.data as DailyTask[] | undefined) || [], [tq.data]);
+  const dailyData = tq.data as DailyTasksResponse | undefined;
+  const tasks = useMemo(() => dailyData?.tasks || [], [dailyData]);
+  const history = useMemo(() => dailyData?.history || [], [dailyData]);
   const goals = useMemo(() => (goalsQ.data as { title: string; status?: string | null }[] | undefined) || [], [goalsQ.data]);
   const skills = useMemo(() => (skillsQ.data as { title: string }[] | undefined) || [], [skillsQ.data]);
 
@@ -119,6 +123,27 @@ export default function DailyPage() {
         <StatCard label="Streak" value={g?.streakCount ?? 0} sub={`بهترین رکورد: ${g?.longestStreak ?? 0}`} icon={<Flame className="h-5 w-5" />} tone="warning" />
         <StatCard label="تسک‌های امروز" value={`${doneCount}/${tasks.length}`} sub={tasks.length ? `${Math.round((doneCount/Math.max(tasks.length,1))*100)}% انجام شده` : "هنوز تسکی نداری"} icon={<CalendarCheck2 className="h-5 w-5" />} tone="success" />
         <StatCard label="Badgeها" value={g?.badges?.length ?? 0} sub="دستاوردهای باز شده" icon={<Trophy className="h-5 w-5" />} />
+      </section>
+
+      <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <Card className="p-6 xl:col-span-2">
+          <h2 className="text-xl font-bold mb-1">ثبات ۷ روز اخیر</h2>
+          <p className="text-sm text-muted-foreground mb-4">تعداد تسک‌های انجام‌شده نسبت به کل تسک‌های هر روز.</p>
+          <DailyConsistencyChart data={history} height={240} />
+        </Card>
+        <Card className="p-6">
+          <h2 className="text-xl font-bold mb-1">وضعیت امروز</h2>
+          <p className="text-sm text-muted-foreground mb-4">نسبت تسک‌های انجام‌شده امروز.</p>
+          <GoalStatusDonut
+            data={[
+              { name: "انجام‌شده", value: doneCount, color: "#10b981" },
+              { name: "باقی‌مانده", value: Math.max(0, tasks.length - doneCount), color: "#475569" },
+            ].filter((d) => d.value > 0)}
+            height={220}
+            centerValue={tasks.length ? `${Math.round((doneCount / tasks.length) * 100)}%` : "0%"}
+            centerLabel="تکمیل"
+          />
+        </Card>
       </section>
 
       <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">

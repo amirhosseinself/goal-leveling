@@ -9,6 +9,8 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { PageSkeleton } from "@/components/dashboard/skeletons";
 import { ErrorState } from "@/components/dashboard/error-state";
+import { GoalStatusDonut } from "@/components/charts/goal-status-donut";
+import { CountBarChart } from "@/components/charts/count-bar-chart";
 import { useUserInfo, useProgressSummary, useGoals, useSkills } from "@/hooks/queries";
 
 const ProfilePage: React.FC = () => {
@@ -19,9 +21,20 @@ const ProfilePage: React.FC = () => {
   const loading = userQ.isLoading || summaryQ.isLoading || goalsQ.isLoading || skillsQ.isLoading;
   const error = userQ.error || summaryQ.error || goalsQ.error || skillsQ.error;
   const user = userQ.data as { fullName?: string | null; userName?: string | null; phoneNumber?: string | null; email?: string | null; bio?: string | null } | undefined;
-  const summary = summaryQ.data as { totalScore?: number; goalProgressCount?: number; skillProgressCount?: number } | undefined;
+  const summary = summaryQ.data as { totalScore?: number; goalProgressCount?: number; skillProgressCount?: number; activitySeries?: { date: string; goalScore: number; skillScore: number; goalCount: number; skillCount: number }[] } | undefined;
   const goals = useMemo(() => (goalsQ.data as { status?: string | null }[] | undefined) || [], [goalsQ.data]);
   const skills = useMemo(() => (skillsQ.data as unknown[] | undefined) || [], [skillsQ.data]);
+  const goalDonut = useMemo(() => {
+    const completed = goals.filter((g) => g.status === "COMPLETED").length;
+    const inProgress = goals.filter((g) => g.status === "IN_PROGRESS").length;
+    const other = Math.max(0, goals.length - completed - inProgress);
+    return [
+      { name: "تکمیل‌شده", value: completed, color: "#10b981" },
+      { name: "در حال انجام", value: inProgress, color: "#8b5cf6" },
+      { name: "سایر", value: other, color: "#64748b" },
+    ].filter((d) => d.value > 0);
+  }, [goals]);
+  const activity14 = useMemo(() => (summary?.activitySeries || []).slice(-14), [summary]);
 
   if (loading) return <PageSkeleton />;
   if (error) return <div className="page-container"><ErrorState message={(error as Error).message} onRetry={() => { userQ.refetch(); summaryQ.refetch(); goalsQ.refetch(); skillsQ.refetch(); }} /></div>;
@@ -48,7 +61,18 @@ const ProfilePage: React.FC = () => {
             <StatCard label="امتیاز کل" value={summary?.totalScore ?? 0} icon={<TrendingUp className="h-5 w-5" />} tone="primary" />
             <StatCard label="ثبت پیشرفت" value={(summary?.goalProgressCount ?? 0) + (summary?.skillProgressCount ?? 0)} icon={<Activity className="h-5 w-5" />} />
           </section>
-          <Card className="p-6"><h2 className="text-lg font-bold mb-4">خلاصه وضعیت</h2><div className="grid sm:grid-cols-2 gap-3 text-sm"><div className="rounded-xl border border-border/70 bg-background/30 p-4"><div className="text-muted-foreground">اهداف تکمیل‌شده</div><div className="text-xl font-bold mt-1">{goals.filter((g) => g.status === "COMPLETED").length}</div></div><div className="rounded-xl border border-border/70 bg-background/30 p-4"><div className="text-muted-foreground">اهداف در حال انجام</div><div className="text-xl font-bold mt-1">{goals.filter((g) => g.status === "IN_PROGRESS").length}</div></div></div></Card>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card className="p-6">
+              <h2 className="text-lg font-bold mb-1">وضعیت اهداف</h2>
+              <p className="text-sm text-muted-foreground mb-4">توزیع وضعیت اهداف شما.</p>
+              <GoalStatusDonut data={goalDonut} height={210} centerValue={goals.length} centerLabel="هدف" />
+            </Card>
+            <Card className="p-6">
+              <h2 className="text-lg font-bold mb-1">فعالیت ۱۴ روز اخیر</h2>
+              <p className="text-sm text-muted-foreground mb-4">تعداد ثبت پیشرفت روزانه.</p>
+              <CountBarChart data={activity14} height={210} />
+            </Card>
+          </div>
         </div>
       </div>
     </div>
